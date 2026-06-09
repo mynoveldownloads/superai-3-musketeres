@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Musketeers Mart Dashboard</title>
+  <title>Musketeers Mart - Inventory Management</title>
   <style>
     * {
       box-sizing: border-box;
@@ -120,10 +120,6 @@
       text-decoration: none;
     }
 
-    .view-profile:hover {
-      text-decoration: underline;
-    }
-
     .main {
       width: 100%;
       padding: 24px;
@@ -148,42 +144,94 @@
       cursor: pointer;
     }
 
-    .title {
-      font-size: 28px;
-      color: #111827;
+    .page-title {
+      font-size: 30px;
       font-weight: 700;
+      color: #111827;
     }
 
-    .chart-placeholder {
-      width: 100%;
-      height: 320px;
+    .filter-card {
       background: white;
       border-radius: 18px;
-      border: 2px dashed #cbd5e1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #64748b;
-      font-size: 18px;
-      margin-bottom: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      margin-bottom: 18px;
     }
 
-    .bottom-grid {
+    .filter-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 14px;
     }
 
-    .small-box {
-      height: 220px;
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22,163,74,.15);
+    }
+
+    .table-card {
       background: white;
       border-radius: 18px;
-      border: 2px dashed #cbd5e1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #64748b;
-      font-size: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    .table-header {
+      padding: 20px 22px 10px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #111827;
+      color: white;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #e5f6ec;
+      color: #15803d;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .chat-bubble {
@@ -216,13 +264,17 @@
       font-weight: 700;
     }
 
-    @media (max-width: 768px) {
-      .bottom-grid {
+    @media (max-width: 900px) {
+      .filter-row {
         grid-template-columns: 1fr;
       }
 
-      .sidebar {
-        width: 260px;
+      table {
+        min-width: 700px;
+      }
+
+      .table-card {
+        overflow-x: auto;
       }
     }
   </style>
@@ -236,8 +288,9 @@
           <button class="close-btn" id="closeBtn">×</button>
         </div>
 
+        <a href="MainPage.html" class="menu-link">Dashboard</a>
         <a href="#" class="menu-link">Order History</a>
-        <a href="Inventory.html" class="menu-link">Inventory Management</a>
+        <a href="inventory.html" class="menu-link">Inventory Management</a>
         <a href="#" class="menu-link">Order Form</a>
       </div>
 
@@ -253,16 +306,58 @@
     <main class="main">
       <div class="topbar">
         <button class="toggle-btn" id="toggleBtn">☰</button>
-        <div class="title">Overview of Stock Level and Sales</div>
+        <div class="page-title">Products</div>
       </div>
 
-      <div class="chart-placeholder">
-        Line Chart Placeholder
+      <div class="filter-card">
+        <div class="filter-row">
+          <div class="field">
+            <label for="searchProduct">Search</label>
+            <input type="text" id="searchProduct" placeholder="Search product info">
+          </div>
+
+          <div class="field">
+            <label for="brandFilter">Brand Name</label>
+            <select id="brandFilter">
+              <option value="">All Brands</option>
+              <option value="brand1">Brand 1</option>
+              <option value="brand2">Brand 2</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="categoryFilter">Category</label>
+            <select id="categoryFilter">
+              <option value="">All Categories</option>
+              <option value="dairy">Dairy</option>
+              <option value="produce">Produce</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="bottom-grid">
-        <div class="small-box">Visual Placeholder 1</div>
-        <div class="small-box">Visual Placeholder 2</div>
+      <div class="table-card">
+        <div class="table-header">Product List</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Brand Name</th>
+              <th>Base Retail Price</th>
+              <th>Quantity On Hand</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Placeholder Product</td>
+              <td>Dairy</td>
+              <td>Brand 1</td>
+              <td>$0.00</td>
+              <td>0</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </main>
   </div>
