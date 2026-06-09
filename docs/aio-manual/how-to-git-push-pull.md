@@ -47,7 +47,10 @@ git add .
 # 4. Commit the initial folder structure
 git commit -m "chore: initial workspace structure setup"
 
-# 5. Push the initial structure to the main branch
+# 5. Rename the default branch to main (avoids master/main mismatch)
+git branch -M main
+
+# 6. Push the initial structure to the main branch
 git push -u origin main
 ```
 
@@ -59,6 +62,7 @@ git push -u origin main
 | `git remote add origin <URL>` | Configures a new remote link named `origin` pointing to the GitHub repository URL. |
 | `git add .` | Stages all changes in the current directory (including the `.gitignore` file). |
 | `git commit -m "<msg>"` | Records a snapshot of the staged files to the local repository history. |
+| `git branch -M main` | Renames the current branch to `main` (required if Git initialized the default branch as `master`). |
 | `git push -u origin main` | Pushes the commits to the remote `main` branch, and sets `origin/main` as the default upstream tracking branch. |
 
 ### Verify
@@ -195,6 +199,7 @@ touch agent/.gitkeep backend/.gitkeep frontend/.gitkeep
 git remote add origin https://github.com/mynoveldownloads/superai-3-musketeres
 git add .
 git commit -m "chore: initial workspace structure setup"
+git branch -M main
 git push -u origin main
 
 # 2. Clone the Repository (For other team members)
@@ -219,11 +224,12 @@ git push -u origin <branch-name>
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
+| `error: src refspec main does not match any` | The local default branch name is `master` rather than `main`, so pushing to `main` fails. | Run `git branch -M main` to rename your local branch to `main`, and then run the push command again. |
+| `[rejected] main -> main (fetch first) error: failed to push some refs to...` | The remote GitHub repository is not completely empty (e.g. contains a README.md or LICENSE) and has commits you do not have locally. | Run `git pull origin main --allow-unrelated-histories` to fetch and merge the remote commits, resolve any merge screens, and then run `git push -u origin main` again. |
 | `fatal: remote origin already exists.` | A remote named `origin` is already defined in this local repository. | Run `git remote set-url origin https://github.com/mynoveldownloads/superai-3-musketeres` to update it. |
 | `fatal: Pathspec 'agent/.gitkeep' did not match any files` | The directories don't exist yet in the local working directory. | Make sure the folders exist. Run `mkdir -p agent backend frontend` before running the `touch` commands. |
-| `error: failed to push some refs to...` | Remote repository has commits that you do not have locally. | Run `git pull origin <branch-name>` to merge the remote changes first, then push. |
 | `fatal: Authentication failed for...` | Incorrect credentials or GitHub personal access token (PAT) has expired. | Re-authenticate using a personal access token or set up Git SSH keys. |
 
 ---
 
-*Guide version: 1.0 — Git branch management & initial project onboarding*
+*Guide version: 1.2 — Git branch management & initial project onboarding*
