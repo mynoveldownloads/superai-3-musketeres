@@ -1,0 +1,102 @@
+## Database Schema Reference
+
+The following tables are available in the database.
+Use this reference to construct accurate SQL queries.
+All table and column names are case-sensitive and must be used exactly as shown.
+
+**Tables in this schema:**
+
+- `orders`
+- `inventory`
+- `sales_items`
+- `suppliers`
+- `products`
+
+---
+
+### `orders`
+> Records individual line items for inventory purchase orders from suppliers.
+
+**Columns:**
+  - `order_id` (INTEGER) [PK, NOT NULL] — Unique identifier for each individual order line item. (e.g. `21`)
+  - `order_number` (VARCHAR(50)) [NOT NULL] — The grouping identifier for a batch of ordered items. (e.g. `5`)
+  - `order_date` (DATE) [NOT NULL] — The calendar date when the purchase order was initialized. (e.g. `2024-08-01`)
+  - `supplier_id` (INTEGER) [NOT NULL, FK → suppliers.supplier_id] — Unique reference to the supplier issuing the items. (e.g. `2`)
+  - `product_id` (INTEGER) [NOT NULL, FK → products.product_id] — Unique reference to the specific product being ordered. (e.g. `73`)
+  - `ordered_qty` (DECIMAL(10,2)) [NOT NULL] — The quantity initially requested from the supplier. (e.g. `25.0`)
+  - `received_qty` (DECIMAL(10,2)) [NOT NULL] — The count of items actually arrived and verified from the shipment. (e.g. `23.0`)
+  - `unit_cost` (DECIMAL(10,2)) [NOT NULL] — The negotiated wholesale cost per individual unit. (e.g. `11.21`)
+  - `line_base_cost` (DECIMAL(10,2)) [NOT NULL] — Calculated total cost for the line item (ordered quantity * unit cost). (e.g. `280.25`)
+  - `discount_pct` (DECIMAL(5,2)) [NOT NULL] — Supplier-provided discount percentage for this line item. (e.g. `2.0`)
+  - `tax_rate_pct` (DECIMAL(5,2)) [NOT NULL] — Applicable purchase tax rate for the product. (e.g. `8.0`)
+  - `status` (VARCHAR(30)) [NOT NULL] — Logistics state of the record: CREATED for initiated orders, RECEIVED for finalized shipment arrival. (e.g. `RECEIVED`) Valid values: ['CREATED', 'RECEIVED']
+  - `created_at` (TIMESTAMP) [NOT NULL] — System entry timestamp when the record was created. (e.g. `2024-01-02T12:00:00Z`)
+
+### `inventory`
+> Maintains a real-time ledger of current net stock, reorder requirements, and inventory health.
+
+**Columns:**
+  - `inventory_id` (INTEGER) [PK, NOT NULL] — Primary unique key for the inventory item record. (e.g. `21`)
+  - `product_id` (INTEGER) [NOT NULL, FK → products.product_id] — Reference to the specific product entity. (e.g. `21`)
+  - `quantity_on_hand` (DECIMAL(10,2)) [NOT NULL] — Current net quantity available in physical storage. (e.g. `60.0`)
+  - `reorder_point` (DECIMAL(10,2)) [NOT NULL] — Minimum stock level threshold that triggers an automated replenishment request. (e.g. `14.0`)
+  - `reorder_qty` (DECIMAL(10,2)) [NOT NULL] — Standard suggested order quantity when below the reorder point. (e.g. `70.0`)
+  - `last_updated_at` (TIMESTAMP) [NOT NULL] — The exact timestamp of the last stock adjustment. (e.g. `2025-06-01T00:00:00Z`)
+
+### `sales_items`
+> Detailed breakdown of products sold within individual retail customer transactions.
+
+**Columns:**
+  - `sale_item_id` (INTEGER) [PK, NOT NULL] — Primary unique key for each line item within a sale. (e.g. `21`)
+  - `sale_id` (INTEGER) [NOT NULL] — Reference to the parent transaction or receipt ID. (e.g. `6`)
+  - `product_id` (INTEGER) [NOT NULL, FK → products.product_id] — Product purchased. (e.g. `25`)
+  - `line_number` (INTEGER) [NOT NULL] — Position of the line item on the customer receipt. (e.g. `1`)
+  - `base_unit_price` (DECIMAL(10,2)) [NOT NULL] — Original shelf price of the product without any discounts. (e.g. `16.72`)
+  - `sale_unit_price` (DECIMAL(10,2)) [NOT NULL] — The actual price paid per unit after store discounts. (e.g. `16.72`)
+  - `quantity` (DECIMAL(10,2)) [NOT NULL] — Count of units sold. (e.g. `1.0`)
+  - `line_base_amount` (DECIMAL(10,2)) [NOT NULL] — Pre-discount subtotal for the line item. (e.g. `16.72`)
+  - `line_sale_amount` (DECIMAL(10,2)) [NOT NULL] — Final subtotal amount charged for the line after discounting. (e.g. `16.72`)
+  - `line_discount_amount` (DECIMAL(10,2)) [NOT NULL] — The currency amount saved on this specific line item. (e.g. `0.0`)
+  - `tax_rate_pct` (DECIMAL(5,2)) [NOT NULL] — Local applicable tax rate percentage. (e.g. `8.0`)
+  - `tax_amount` (DECIMAL(10,2)) [NOT NULL] — The currency amount calculated for tax on this line. (e.g. `1.34`)
+  - `promotion_code` (VARCHAR(50)) — Identifier for any applied promotional campaign, if applicable. (e.g. `BULK5`)
+  - `created_at` (TIMESTAMP) [NOT NULL] — Exact transaction time. (e.g. `2024-04-15T15:26:00Z`)
+
+### `suppliers`
+> Core entity list containing contact and profile information for all product suppliers.
+
+**Columns:**
+  - `supplier_id` (INTEGER) [PK, NOT NULL] — System-wide unique primary key for the supplier. (e.g. `1`)
+  - `supplier_code` (VARCHAR(50)) [NOT NULL] — Internal business shorthand code for the supplier entity. (e.g. `LIONCI-001`)
+  - `supplier_name` (VARCHAR(255)) [NOT NULL] — Full formal name of the business supplying the supermarket. (e.g. `Lion City Foods Pte Ltd`)
+  - `contact_name` (VARCHAR(255)) [NOT NULL] — Designated point of contact person. (e.g. `Lion Contact`)
+  - `contact_email` (VARCHAR(255)) [NOT NULL] — Email address for procurement communications. (e.g. `info@lioncityfoods.example.com`)
+  - `contact_phone` (VARCHAR(50)) [NOT NULL] — Primary business phone number. (e.g. `+65 60010001`)
+  - `address` (VARCHAR(500)) [NOT NULL] — Physical headquarters address. (e.g. `11 Market Street, Singapore`)
+  - `is_active` (BOOLEAN) [NOT NULL] — Flag indicating if the supplier is currently enabled for new purchase orders. (e.g. `True`)
+  - `created_at` (TIMESTAMP) [NOT NULL] — Registration date of the supplier in the system. (e.g. `2024-04-12T00:00:00Z`)
+
+### `products`
+> Master catalogue of products available for sale, including stock tracking parameters.
+
+**Columns:**
+  - `product_id` (INTEGER) [PK, NOT NULL] — Unique system catalogue identifier for the product. (e.g. `21`)
+  - `product_sku` (VARCHAR(50)) [NOT NULL] — The stock keeping unit used for warehouse inventory tracking. (e.g. `SKU-00021`)
+  - `product_name` (VARCHAR(255)) [NOT NULL] — Short label name for the consumer product. (e.g. `SeaHarvest Prawns`)
+  - `brand` (VARCHAR(100)) [NOT NULL] — Manufacturer or product brand name. (e.g. `SeaHarvest`)
+  - `category` (VARCHAR(100)) [NOT NULL] — Departmental categorisation of the product (e.g., Frozen, Dairy). (e.g. `Seafood`)
+  - `supplier_id` (INTEGER) [NOT NULL, FK → suppliers.supplier_id] — The link to the responsible primary supplier. (e.g. `7`)
+  - `unit_of_measure` (VARCHAR(20)) [NOT NULL] — Selling unit (e.g., EA represents Each, KG for Kilogram). (e.g. `PACK`)
+  - `pack_size` (VARCHAR(50)) [NOT NULL] — Physical size configuration, e.g., '500g' or '330ml'. (e.g. `500g`)
+  - `base_cost` (DECIMAL(10,2)) [NOT NULL] — The standard wholesale price billed by the supplier. (e.g. `27.85`)
+  - `base_retail_price` (DECIMAL(10,2)) [NOT NULL] — The standard shelf listing price for customers. (e.g. `41.36`)
+  - `tax_rate_pct` (DECIMAL(5,2)) [NOT NULL] — Applicable sales tax rate for consumers. (e.g. `8.0`)
+  - `is_discontinued` (BOOLEAN) [NOT NULL] — Indicates if the product has been marked for end-of-life status. (e.g. `False`)
+  - `created_at` (TIMESTAMP) [NOT NULL] — Timestamp when the product was registered in the catalogue. (e.g. `2024-10-20T00:00:00Z`)
+
+---
+
+> **Query guidance**
+> - Join tables using the foreign key relationships indicated above (e.g. `orders.supplier_id → suppliers.supplier_id`).
+> - Prefer `DECIMAL` columns for any arithmetic to avoid floating-point drift.
+> - Filter `status`, `is_active`, and `is_discontinued` flags where relevant to avoid including stale or inactive records.
