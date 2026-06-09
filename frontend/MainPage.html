@@ -225,6 +225,16 @@
         width: 260px;
       }
     }
+    .logout-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  text-decoration: none;
+}
+
+.logout-link:hover {
+  text-decoration: underline;
+}
   </style>
 </head>
 <body>
@@ -238,7 +248,7 @@
 
         <a href="#" class="menu-link">Order History</a>
         <a href="Inventory.html" class="menu-link">Inventory Management</a>
-        <a href="#" class="menu-link">Order Form</a>
+        <a href="OrderForm.html" class="menu-link">Order Form</a>
       </div>
 
       <div class="sidebar-profile">
@@ -246,6 +256,7 @@
         <div class="profile-info">
           <div class="username" id="sidebarUsername">user1</div>
           <a href="#" class="view-profile" id="viewProfileLink">View Profile</a>
+          <a href="#" class="logout-link" id="logoutLink">Logout</a>
         </div>
       </div>
     </aside>
@@ -293,6 +304,16 @@
     viewProfileLink.addEventListener("click", (e) => {
       e.preventDefault();
       alert("View Profile for " + username);
+    });
+    
+    const logoutLink = document.getElementById("logoutLink");
+
+    logoutLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("failedAttempts");
+        localStorage.removeItem("cooldownUntil");
+        window.location.replace("Homepage.html");
     });
 
     chatBubble.addEventListener("click", () => {
