@@ -1,0 +1,471 @@
+{
+  "orders": {
+    "description": "Records individual line items for inventory purchase orders from suppliers.",
+    "columns": {
+      "order_id": {
+        "type": "INTEGER",
+        "primary_key": true,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Unique identifier for each individual order line item.",
+        "example": 21
+      },
+      "order_number": {
+        "type": "VARCHAR(50)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The grouping identifier for a batch of ordered items.",
+        "example": "5"
+      },
+      "order_date": {
+        "type": "DATE",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The calendar date when the purchase order was initialized.",
+        "example": "2024-08-01"
+      },
+      "supplier_id": {
+        "type": "INTEGER",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": "suppliers.supplier_id",
+        "description": "Unique reference to the supplier issuing the items.",
+        "example": 2
+      },
+      "product_id": {
+        "type": "INTEGER",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": "products.product_id",
+        "description": "Unique reference to the specific product being ordered.",
+        "example": 73
+      },
+      "ordered_qty": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The quantity initially requested from the supplier.",
+        "example": 25.0
+      },
+      "received_qty": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The count of items actually arrived and verified from the shipment.",
+        "example": 23.0
+      },
+      "unit_cost": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The negotiated wholesale cost per individual unit.",
+        "example": 11.21
+      },
+      "line_base_cost": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Calculated total cost for the line item (ordered quantity * unit cost).",
+        "example": 280.25
+      },
+      "discount_pct": {
+        "type": "DECIMAL(5,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Supplier-provided discount percentage for this line item.",
+        "example": 2.0
+      },
+      "tax_rate_pct": {
+        "type": "DECIMAL(5,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Applicable purchase tax rate for the product.",
+        "example": 8.0
+      },
+      "status": {
+        "type": "VARCHAR(30)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Logistics state of the record: CREATED for initiated orders, RECEIVED for finalized shipment arrival.",
+        "example": "RECEIVED",
+        "valid_values": [
+          "CREATED",
+          "RECEIVED"
+        ]
+      },
+      "created_at": {
+        "type": "TIMESTAMP",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "System entry timestamp when the record was created.",
+        "example": "2024-01-02T12:00:00Z"
+      }
+    }
+  },
+  "inventory": {
+    "description": "Maintains a real-time ledger of current net stock, reorder requirements, and inventory health.",
+    "columns": {
+      "inventory_id": {
+        "type": "INTEGER",
+        "primary_key": true,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Primary unique key for the inventory item record.",
+        "example": 21
+      },
+      "product_id": {
+        "type": "INTEGER",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": "products.product_id",
+        "description": "Reference to the specific product entity.",
+        "example": 21
+      },
+      "quantity_on_hand": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Current net quantity available in physical storage.",
+        "example": 60.0
+      },
+      "reorder_point": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Minimum stock level threshold that triggers an automated replenishment request.",
+        "example": 14.0
+      },
+      "reorder_qty": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Standard suggested order quantity when below the reorder point.",
+        "example": 70.0
+      },
+      "last_updated_at": {
+        "type": "TIMESTAMP",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The exact timestamp of the last stock adjustment.",
+        "example": "2025-06-01T00:00:00Z"
+      }
+    }
+  },
+  "sales_items": {
+    "description": "Detailed breakdown of products sold within individual retail customer transactions.",
+    "columns": {
+      "sale_item_id": {
+        "type": "INTEGER",
+        "primary_key": true,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Primary unique key for each line item within a sale.",
+        "example": 21
+      },
+      "sale_id": {
+        "type": "INTEGER",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Reference to the parent transaction or receipt ID.",
+        "example": 6
+      },
+      "product_id": {
+        "type": "INTEGER",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": "products.product_id",
+        "description": "Product purchased.",
+        "example": 25
+      },
+      "line_number": {
+        "type": "INTEGER",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Position of the line item on the customer receipt.",
+        "example": 1
+      },
+      "base_unit_price": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Original shelf price of the product without any discounts.",
+        "example": 16.72
+      },
+      "sale_unit_price": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The actual price paid per unit after store discounts.",
+        "example": 16.72
+      },
+      "quantity": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Count of units sold.",
+        "example": 1.0
+      },
+      "line_base_amount": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Pre-discount subtotal for the line item.",
+        "example": 16.72
+      },
+      "line_sale_amount": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Final subtotal amount charged for the line after discounting.",
+        "example": 16.72
+      },
+      "line_discount_amount": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The currency amount saved on this specific line item.",
+        "example": 0.0
+      },
+      "tax_rate_pct": {
+        "type": "DECIMAL(5,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Local applicable tax rate percentage.",
+        "example": 8.0
+      },
+      "tax_amount": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The currency amount calculated for tax on this line.",
+        "example": 1.34
+      },
+      "promotion_code": {
+        "type": "VARCHAR(50)",
+        "primary_key": false,
+        "nullable": true,
+        "foreign_key": null,
+        "description": "Identifier for any applied promotional campaign, if applicable.",
+        "example": "BULK5"
+      },
+      "created_at": {
+        "type": "TIMESTAMP",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Exact transaction time.",
+        "example": "2024-04-15T15:26:00Z"
+      }
+    }
+  },
+  "suppliers": {
+    "description": "Core entity list containing contact and profile information for all product suppliers.",
+    "columns": {
+      "supplier_id": {
+        "type": "INTEGER",
+        "primary_key": true,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "System-wide unique primary key for the supplier.",
+        "example": 1
+      },
+      "supplier_code": {
+        "type": "VARCHAR(50)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Internal business shorthand code for the supplier entity.",
+        "example": "LIONCI-001"
+      },
+      "supplier_name": {
+        "type": "VARCHAR(255)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Full formal name of the business supplying the supermarket.",
+        "example": "Lion City Foods Pte Ltd"
+      },
+      "contact_name": {
+        "type": "VARCHAR(255)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Designated point of contact person.",
+        "example": "Lion Contact"
+      },
+      "contact_email": {
+        "type": "VARCHAR(255)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Email address for procurement communications.",
+        "example": "info@lioncityfoods.example.com"
+      },
+      "contact_phone": {
+        "type": "VARCHAR(50)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Primary business phone number.",
+        "example": "+65 60010001"
+      },
+      "address": {
+        "type": "VARCHAR(500)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Physical headquarters address.",
+        "example": "11 Market Street, Singapore"
+      },
+      "is_active": {
+        "type": "BOOLEAN",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Flag indicating if the supplier is currently enabled for new purchase orders.",
+        "example": true
+      },
+      "created_at": {
+        "type": "TIMESTAMP",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Registration date of the supplier in the system.",
+        "example": "2024-04-12T00:00:00Z"
+      }
+    }
+  },
+  "products": {
+    "description": "Master catalogue of products available for sale, including stock tracking parameters.",
+    "columns": {
+      "product_id": {
+        "type": "INTEGER",
+        "primary_key": true,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Unique system catalogue identifier for the product.",
+        "example": 21
+      },
+      "product_sku": {
+        "type": "VARCHAR(50)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The stock keeping unit used for warehouse inventory tracking.",
+        "example": "SKU-00021"
+      },
+      "product_name": {
+        "type": "VARCHAR(255)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Short label name for the consumer product.",
+        "example": "SeaHarvest Prawns"
+      },
+      "brand": {
+        "type": "VARCHAR(100)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Manufacturer or product brand name.",
+        "example": "SeaHarvest"
+      },
+      "category": {
+        "type": "VARCHAR(100)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Departmental categorisation of the product (e.g., Frozen, Dairy).",
+        "example": "Seafood"
+      },
+      "supplier_id": {
+        "type": "INTEGER",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": "suppliers.supplier_id",
+        "description": "The link to the responsible primary supplier.",
+        "example": 7
+      },
+      "unit_of_measure": {
+        "type": "VARCHAR(20)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Selling unit (e.g., EA represents Each, KG for Kilogram).",
+        "example": "PACK"
+      },
+      "pack_size": {
+        "type": "VARCHAR(50)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Physical size configuration, e.g., '500g' or '330ml'.",
+        "example": "500g"
+      },
+      "base_cost": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The standard wholesale price billed by the supplier.",
+        "example": 27.85
+      },
+      "base_retail_price": {
+        "type": "DECIMAL(10,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "The standard shelf listing price for customers.",
+        "example": 41.36
+      },
+      "tax_rate_pct": {
+        "type": "DECIMAL(5,2)",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Applicable sales tax rate for consumers.",
+        "example": 8.0
+      },
+      "is_discontinued": {
+        "type": "BOOLEAN",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Indicates if the product has been marked for end-of-life status.",
+        "example": false
+      },
+      "created_at": {
+        "type": "TIMESTAMP",
+        "primary_key": false,
+        "nullable": false,
+        "foreign_key": null,
+        "description": "Timestamp when the product was registered in the catalogue.",
+        "example": "2024-10-20T00:00:00Z"
+      }
+    }
+  }
+}
