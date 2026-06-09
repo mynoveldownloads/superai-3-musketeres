@@ -18,12 +18,12 @@ body {
   background: #f3f4f6;
 }
 
+/* ================= SIDEBAR (MATCH INVENTORY) ================= */
 .layout {
   display: flex;
   min-height: 100vh;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 300px;
   background: #111827;
@@ -34,7 +34,7 @@ body {
   left: 0;
   height: 100vh;
   transform: translateX(-100%);
-  transition: 0.3s ease;
+  transition: transform 0.3s ease;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -52,22 +52,23 @@ body {
 }
 
 .close-btn {
-  background: rgba(255,255,255,0.12);
   border: none;
+  background: rgba(255,255,255,0.12);
   color: white;
   width: 36px;
   height: 36px;
   border-radius: 10px;
+  font-size: 20px;
   cursor: pointer;
 }
 
 .menu-link {
   display: block;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
   color: white;
   text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
   background: rgba(255,255,255,0.06);
 }
 
@@ -75,16 +76,52 @@ body {
   background: rgba(255,255,255,0.15);
 }
 
+/* PROFILE (same as inventory) */
 .sidebar-profile {
   margin-top: auto;
-  background: rgba(255,255,255,0.08);
   padding: 12px;
+  background: rgba(255,255,255,0.08);
   border-radius: 12px;
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-/* MAIN */
+.sidebar-profile img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+  border: 2px solid #16a34a;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.username {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.view-profile {
+  font-size: 12px;
+  color: #16a34a;
+  text-decoration: none;
+}
+
+.logout-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ================= MAIN ================= */
 .main {
   width: 100%;
   padding: 24px;
@@ -149,12 +186,6 @@ input {
   margin-top: 20px;
 }
 
-.total {
-  font-weight: 800;
-  font-size: 18px;
-}
-
-/* BUTTON */
 button.action {
   margin-top: 15px;
   padding: 10px 16px;
@@ -169,11 +200,6 @@ button.action {
 
 <body>
 
-<!-- LOGO (FIXED POSITION) -->
-<div style="text-align:center; margin:15px 0;">
-  <img src="logo.jfif" style="width:220px; height:120px; object-fit:contain;">
-</div>
-
 <div class="layout">
 
 <!-- SIDEBAR -->
@@ -186,9 +212,19 @@ button.action {
     </div>
 
     <a class="menu-link" href="MainPage.html">Dashboard</a>
-    <a class="menu-link" href="#">Order History</a>
+    <a class="menu-link" href="OrderHistory.html">Order History</a>
     <a class="menu-link" href="inventory.html">Inventory</a>
     <a class="menu-link" href="OrderForm.html">Order Form</a>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="sidebar-profile">
+    <img src="profile_pic_default.png">
+    <div class="profile-info">
+      <div class="username" id="sidebarUsername">user1</div>
+      <a href="#" class="view-profile">View Profile</a>
+      <a href="#" class="logout-link" id="logoutLink">Logout</a>
+    </div>
   </div>
 
 </aside>
@@ -196,142 +232,154 @@ button.action {
 <!-- MAIN -->
 <main class="main">
 
-  <div class="topbar">
-    <button class="toggle-btn" id="toggleBtn">☰</button>
-    <div class="page-title">Purchase Order Form</div>
+<div class="topbar">
+  <button class="toggle-btn" id="toggleBtn">☰</button>
+  <div class="page-title">Purchase Order Form</div>
+</div>
+
+<div class="card">
+
+<!-- HEADER -->
+<div style="display:flex;justify-content:space-between;">
+  <div>
+    <h2>Musketeers Mart</h2>
+    <p>123 Grocery Avenue<br>Singapore 123456</p>
+
+    <div style="margin-top:12px;"></div>
+
+    <p><strong>Supplier:</strong> <input></p>
   </div>
 
-  <div class="card">
-
-    <!-- HEADER -->
-    <div style="display:flex;justify-content:space-between;">
-      <div>
-        <h2>Musketeers Mart</h2>
-        <p>123 Grocery Avenue<br>Singapore 123456</p>
-      </div>
-
-      <div style="text-align:right;">
-        <h3>PURCHASE ORDER</h3>
-        <p>Date: <span id="date"></span></p>
-        <p>PO No: <span id="poNo"></span></p>
-      </div>
-    </div>
-
-    <!-- TABLE -->
-    <table id="table">
-
-      <thead>
-        <tr>
-          <th>Item No</th>
-          <th>Description</th>
-          <th>Pack Size</th>
-          <th>UOM</th>
-          <th>Qty</th>
-          <th>Unit Price</th>
-          <th>Total</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr>
-          <td><input placeholder="product_id"></td>
-          <td><input placeholder="product_name"></td>
-          <td><input placeholder="pack_size"></td>
-          <td><input placeholder="unit_of_measure"></td>
-
-          <td><input type="number" class="qty" value="0"></td>
-          <td><input type="number" class="price" value="0"></td>
-
-          <td class="lineTotal">$0.00</td>
-
-          <td>
-            <button onclick="deleteRow(this)"
-              style="background:red;color:white;border:none;
-              padding:5px 10px;border-radius:6px;">
-              X
-            </button>
-          </td>
-        </tr>
-      </tbody>
-
-    </table>
-
-    <button class="action" onclick="addRow()">+ Add Item</button>
-
-    <!-- SUMMARY -->
-    <div class="summary">
-
-      <table>
-        <tr>
-          <td>Subtotal</td>
-          <td id="subtotal">$0.00</td>
-        </tr>
-
-        <tr>
-          <td>Tax (%)</td>
-          <td><input id="tax" type="number" value="9"></td>
-        </tr>
-
-        <tr>
-          <td>Total Tax</td>
-          <td id="taxAmt">$0.00</td>
-        </tr>
-
-        <tr class="total">
-          <td>TOTAL</td>
-          <td id="grand">$0.00</td>
-        </tr>
-      </table>
-
-    </div>
-
-    <button class="action" id="submit">Submit Purchase Order</button>
-
+  <div style="text-align:right;">
+    <h3>PURCHASE ORDER</h3>
+    <p>Date: <span id="date"></span></p>
+    <p>PO No: <span id="id"></span></p>
   </div>
+</div>
 
+<!-- TABLE -->
+<table id="table">
+<thead>
+<tr>
+  <th>Item</th>
+  <th>Description</th>
+  <th>Qty</th>
+  <th>Price</th>
+  <th>Total</th>
+  <th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+  <td><input></td>
+  <td><input></td>
+  <td><input type="number" class="qty" value="0"></td>
+  <td><input type="number" class="price" value="0"></td>
+  <td class="lineTotal">$0.00</td>
+  <td><button onclick="deleteRow(this)" style="background:red;color:white;">X</button></td>
+</tr>
+</tbody>
+</table>
+
+<button class="action" onclick="addRow()">+ Add Item</button>
+
+<!-- SUMMARY -->
+<div class="summary">
+<table>
+<tr>
+  <td>Subtotal</td>
+  <td id="subtotal">$0.00</td>
+</tr>
+<tr>
+  <td>Tax (8%)</td>
+  <td id="taxAmt">$0.00</td>
+</tr>
+<tr>
+  <td><b>Total</b></td>
+  <td id="grand"><b>$0.00</b></td>
+</tr>
+</table>
+</div>
+
+<button class="action" id="submitBtn">Submit Purchase Order</button>
+
+</div>
 </main>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:2000;">
+<div style="background:white;padding:25px;border-radius:12px;text-align:center;width:320px;">
+<h3>Confirm Order</h3>
+<p>Would you like to confirm your order?</p>
+
+<div style="display:flex;gap:10px;justify-content:center;margin-top:15px;">
+<button onclick="confirmOrder()" style="background:#16a34a;color:white;padding:10px 16px;border:none;border-radius:8px;">Yes</button>
+<button onclick="closeConfirm()" style="background:#dc2626;color:white;padding:10px 16px;border:none;border-radius:8px;">No</button>
+</div>
+
+</div>
 </div>
 
 <script>
 
 /* SIDEBAR */
 const sidebar = document.getElementById("sidebar");
+document.getElementById("toggleBtn").onclick = () => sidebar.classList.add("open");
+document.getElementById("closeBtn").onclick = () => sidebar.classList.remove("open");
 
-document.getElementById("toggleBtn").onclick = () =>
-  sidebar.classList.add("open");
+/* LOGOUT */
+document.getElementById("logoutLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  localStorage.clear();
+  window.location.href = "Homepage.html";
+});
 
-document.getElementById("closeBtn").onclick = () =>
-  sidebar.classList.remove("open");
+/* DATE + PO */
+const today = new Date();
+document.getElementById("date").textContent = today.toLocaleDateString();
 
-/* DATE */
-document.getElementById("date").textContent =
-new Date().toLocaleDateString();
-
-/* PO NUMBER */
 let po = parseInt(localStorage.getItem("po")) || 1000;
-document.getElementById("poNo").textContent = "PO-" + po;
+document.getElementById("id").textContent = po;
+
+/* TAX */
+const tax_rate_pct = 8;
+
+/* CALC */
+document.addEventListener("input", calc);
+
+function calc(){
+  let subtotal = 0;
+
+  document.querySelectorAll("#table tbody tr").forEach(r => {
+    let q = +r.querySelector(".qty").value || 0;
+    let p = +r.querySelector(".price").value || 0;
+
+    let total = q * p;
+    r.querySelector(".lineTotal").textContent = "$" + total.toFixed(2);
+    subtotal += total;
+  });
+
+  document.getElementById("subtotal").textContent = "$" + subtotal.toFixed(2);
+
+  let tax = subtotal * tax_rate_pct / 100;
+  document.getElementById("taxAmt").textContent = "$" + tax.toFixed(2);
+
+  document.getElementById("grand").textContent = "$" + (subtotal + tax).toFixed(2);
+}
 
 /* ADD ROW */
 function addRow(){
   const row = document.createElement("tr");
-
   row.innerHTML = `
-    <td><input placeholder="product_id"></td>
-    <td><input placeholder="product_name"></td>
-    <td><input placeholder="pack_size"></td>
-    <td><input placeholder="unit_of_measure"></td>
+    <td><input></td>
+    <td><input></td>
     <td><input type="number" class="qty" value="0"></td>
     <td><input type="number" class="price" value="0"></td>
     <td class="lineTotal">$0.00</td>
-    <td>
-      <button onclick="deleteRow(this)"
-        style="background:red;color:white;border:none;padding:5px 10px;border-radius:6px;">
-        X
-      </button>
-    </td>
+    <td><button onclick="deleteRow(this)" style="background:red;color:white;">X</button></td>
   `;
-
   document.querySelector("#table tbody").appendChild(row);
 }
 
@@ -341,97 +389,102 @@ function deleteRow(btn){
   calc();
 }
 
-/* CALC */
-document.addEventListener("input", calc);
+/* MODAL */
+const modal = document.getElementById("confirmModal");
 
-function calc(){
+document.getElementById("submitBtn").onclick = () => {
+  modal.style.display = "flex";
+};
 
+function closeConfirm(){
+  modal.style.display = "none";
+}
+
+/* ================= SAVE ORDER TO LOCALSTORAGE ================= */
+function confirmOrder(){
+
+  const supplier = document.querySelector("input").value || "Unknown Supplier";
+  const date = document.getElementById("date").textContent;
+  const poNumber = document.getElementById("id").textContent;
+
+  let items = [];
   let subtotal = 0;
 
   document.querySelectorAll("#table tbody tr").forEach(r => {
+    let item = r.querySelectorAll("input")[0].value;
+    let desc = r.querySelectorAll("input")[1].value;
+    let qty = +r.querySelector(".qty").value || 0;
+    let price = +r.querySelector(".price").value || 0;
 
-    let q = +r.querySelector(".qty")?.value || 0;
-    let p = +r.querySelector(".price")?.value || 0;
-
-    let total = q * p;
-
-    r.querySelector(".lineTotal").textContent =
-      "$" + total.toFixed(2);
-
+    let total = qty * price;
     subtotal += total;
+
+    items.push({
+      item,
+      desc,
+      qty,
+      price,
+      total
+    });
   });
 
-  document.getElementById("subtotal").textContent =
-    "$" + subtotal.toFixed(2);
+  let tax = subtotal * tax_rate_pct / 100;
+  let grand = subtotal + tax;
 
-  let taxRate = +document.getElementById("tax").value || 0;
+  // GET EXISTING ORDERS
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
 
-  let tax = subtotal * taxRate / 100;
+  // ADD NEW ORDER
+  orders.push({
+    po: poNumber,
+    date: date,
+    supplier: supplier,
+    items: items,
+    subtotal: subtotal,
+    tax: tax,
+    total: grand,
+    status: "Sent"
+  });
 
-  document.getElementById("taxAmt").textContent =
-    "$" + tax.toFixed(2);
+  localStorage.setItem("orders", JSON.stringify(orders));
 
-  document.getElementById("grand").textContent =
-    "$" + (subtotal + tax).toFixed(2);
-}
-
-/* SUBMIT */
-document.getElementById("submit").onclick = () => {
-
-  // increment PO
+  // UPDATE PO NUMBER
   po++;
   localStorage.setItem("po", po);
 
-  // hide form card
+  modal.style.display = "none";
+
+  // SUCCESS UI (UNCHANGED DESIGN STYLE)
   document.querySelector(".card").innerHTML = `
-    
-    <div style="
-      text-align:center;
-      padding:40px;
-    ">
+  <div style="text-align:center;padding:40px;">
+    <h2 style="color:#16a34a;">Order Sent Successfully ✅</h2>
 
-      <h2 style="color:#16a34a; font-size:28px;">
-        Order Sent Successfully ✅
-      </h2>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
 
-      <p style="margin-top:10px; color:#6b7280;">
-        Your purchase order has been submitted.
-      </p>
+      <button onclick="location.reload()" 
+        style="background:#16a34a;color:white;padding:10px;border:none;border-radius:8px;">
+        New Order
+      </button>
 
-      <div style="margin-top:30px; display:flex; gap:15px; justify-content:center;">
+      <!-- HISTORY LINK (FIXED + CLEAN) -->
+      <button onclick="window.location.href='OrderHistory.html'" 
+        style="background:#111827;color:white;padding:10px;border:none;border-radius:8px;">
+        View Order History
+      </button>
 
-        <button onclick="location.reload()"
-          style="
-            padding:12px 18px;
-            background:#16a34a;
-            color:white;
-            border:none;
-            border-radius:10px;
-            cursor:pointer;
-          ">
-          ➕ Add New Order
-        </button>
-
-        <button onclick="window.location.href='OrderHistory.html'"
-          style="
-            padding:12px 18px;
-            background:#111827;
-            color:white;
-            border:none;
-            border-radius:10px;
-            cursor:pointer;
-          ">
-          📜 View Order History
-        </button>
-
-      </div>
+      <!-- SUMMARY LINK (WITH PO) -->
+      <button onclick="window.location.href='OrderSummary.html?po=${poNumber}'" 
+        style="background:#2563eb;color:white;padding:10px;border:none;border-radius:8px;">
+        View Order Summary
+      </button>
 
     </div>
-
-  `;
-};
+  </div>
+`;
+}
 
 calc();
+
 
 </script>
 
