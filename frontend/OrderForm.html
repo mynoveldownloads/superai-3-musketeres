@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Musketeers Mart - Order Form</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 300px;
+  background: #111827;
+  color: white;
+  padding: 20px 18px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  transform: translateX(-100%);
+  transition: 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.close-btn {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-link {
+  display: block;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  color: white;
+  text-decoration: none;
+  background: rgba(255,255,255,0.06);
+}
+
+.menu-link:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.sidebar-profile {
+  margin-top: auto;
+  background: rgba(255,255,255,0.08);
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+/* MAIN */
+.main {
+  width: 100%;
+  padding: 24px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.toggle-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+thead {
+  background: #111827;
+  color: white;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+input {
+  width: 100%;
+  padding: 6px;
+}
+
+/* SUMMARY */
+.summary {
+  width: 320px;
+  margin-left: auto;
+  margin-top: 20px;
+}
+
+.total {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+/* BUTTON */
+button.action {
+  margin-top: 15px;
+  padding: 10px 16px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGO (FIXED POSITION) -->
+<div style="text-align:center; margin:15px 0;">
+  <img src="logo.jfif" style="width:220px; height:120px; object-fit:contain;">
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+
+  <div>
+    <div class="sidebar-header">
+      <h2>Musketeers Mart</h2>
+      <button class="close-btn" id="closeBtn">×</button>
+    </div>
+
+    <a class="menu-link" href="MainPage.html">Dashboard</a>
+    <a class="menu-link" href="#">Order History</a>
+    <a class="menu-link" href="inventory.html">Inventory</a>
+    <a class="menu-link" href="OrderForm.html">Order Form</a>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="topbar">
+    <button class="toggle-btn" id="toggleBtn">☰</button>
+    <div class="page-title">Purchase Order Form</div>
+  </div>
+
+  <div class="card">
+
+    <!-- HEADER -->
+    <div style="display:flex;justify-content:space-between;">
+      <div>
+        <h2>Musketeers Mart</h2>
+        <p>123 Grocery Avenue<br>Singapore 123456</p>
+      </div>
+
+      <div style="text-align:right;">
+        <h3>PURCHASE ORDER</h3>
+        <p>Date: <span id="date"></span></p>
+        <p>PO No: <span id="poNo"></span></p>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <table id="table">
+
+      <thead>
+        <tr>
+          <th>Item No</th>
+          <th>Description</th>
+          <th>Pack Size</th>
+          <th>UOM</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td><input placeholder="product_id"></td>
+          <td><input placeholder="product_name"></td>
+          <td><input placeholder="pack_size"></td>
+          <td><input placeholder="unit_of_measure"></td>
+
+          <td><input type="number" class="qty" value="0"></td>
+          <td><input type="number" class="price" value="0"></td>
+
+          <td class="lineTotal">$0.00</td>
+
+          <td>
+            <button onclick="deleteRow(this)"
+              style="background:red;color:white;border:none;
+              padding:5px 10px;border-radius:6px;">
+              X
+            </button>
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+
+    <button class="action" onclick="addRow()">+ Add Item</button>
+
+    <!-- SUMMARY -->
+    <div class="summary">
+
+      <table>
+        <tr>
+          <td>Subtotal</td>
+          <td id="subtotal">$0.00</td>
+        </tr>
+
+        <tr>
+          <td>Tax (%)</td>
+          <td><input id="tax" type="number" value="9"></td>
+        </tr>
+
+        <tr>
+          <td>Total Tax</td>
+          <td id="taxAmt">$0.00</td>
+        </tr>
+
+        <tr class="total">
+          <td>TOTAL</td>
+          <td id="grand">$0.00</td>
+        </tr>
+      </table>
+
+    </div>
+
+    <button class="action" id="submit">Submit Purchase Order</button>
+
+  </div>
+
+</main>
+</div>
+
+<script>
+
+/* SIDEBAR */
+const sidebar = document.getElementById("sidebar");
+
+document.getElementById("toggleBtn").onclick = () =>
+  sidebar.classList.add("open");
+
+document.getElementById("closeBtn").onclick = () =>
+  sidebar.classList.remove("open");
+
+/* DATE */
+document.getElementById("date").textContent =
+new Date().toLocaleDateString();
+
+/* PO NUMBER */
+let po = parseInt(localStorage.getItem("po")) || 1000;
+document.getElementById("poNo").textContent = "PO-" + po;
+
+/* ADD ROW */
+function addRow(){
+  const row = document.createElement("tr");
+
+  row.innerHTML = `
+    <td><input placeholder="product_id"></td>
+    <td><input placeholder="product_name"></td>
+    <td><input placeholder="pack_size"></td>
+    <td><input placeholder="unit_of_measure"></td>
+    <td><input type="number" class="qty" value="0"></td>
+    <td><input type="number" class="price" value="0"></td>
+    <td class="lineTotal">$0.00</td>
+    <td>
+      <button onclick="deleteRow(this)"
+        style="background:red;color:white;border:none;padding:5px 10px;border-radius:6px;">
+        X
+      </button>
+    </td>
+  `;
+
+  document.querySelector("#table tbody").appendChild(row);
+}
+
+/* DELETE ROW */
+function deleteRow(btn){
+  btn.parentElement.parentElement.remove();
+  calc();
+}
+
+/* CALC */
+document.addEventListener("input", calc);
+
+function calc(){
+
+  let subtotal = 0;
+
+  document.querySelectorAll("#table tbody tr").forEach(r => {
+
+    let q = +r.querySelector(".qty")?.value || 0;
+    let p = +r.querySelector(".price")?.value || 0;
+
+    let total = q * p;
+
+    r.querySelector(".lineTotal").textContent =
+      "$" + total.toFixed(2);
+
+    subtotal += total;
+  });
+
+  document.getElementById("subtotal").textContent =
+    "$" + subtotal.toFixed(2);
+
+  let taxRate = +document.getElementById("tax").value || 0;
+
+  let tax = subtotal * taxRate / 100;
+
+  document.getElementById("taxAmt").textContent =
+    "$" + tax.toFixed(2);
+
+  document.getElementById("grand").textContent =
+    "$" + (subtotal + tax).toFixed(2);
+}
+
+/* SUBMIT */
+document.getElementById("submit").onclick = () => {
+
+  // increment PO
+  po++;
+  localStorage.setItem("po", po);
+
+  // hide form card
+  document.querySelector(".card").innerHTML = `
+    
+    <div style="
+      text-align:center;
+      padding:40px;
+    ">
+
+      <h2 style="color:#16a34a; font-size:28px;">
+        Order Sent Successfully ✅
+      </h2>
+
+      <p style="margin-top:10px; color:#6b7280;">
+        Your purchase order has been submitted.
+      </p>
+
+      <div style="margin-top:30px; display:flex; gap:15px; justify-content:center;">
+
+        <button onclick="location.reload()"
+          style="
+            padding:12px 18px;
+            background:#16a34a;
+            color:white;
+            border:none;
+            border-radius:10px;
+            cursor:pointer;
+          ">
+          ➕ Add New Order
+        </button>
+
+        <button onclick="window.location.href='OrderHistory.html'"
+          style="
+            padding:12px 18px;
+            background:#111827;
+            color:white;
+            border:none;
+            border-radius:10px;
+            cursor:pointer;
+          ">
+          📜 View Order History
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+};
+
+calc();
+
+</script>
+
+</body>
+</html>

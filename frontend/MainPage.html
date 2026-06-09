@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Musketeers Mart Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #f3f4f6;
+      overflow-x: hidden;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 300px;
+      background: #111827;
+      color: white;
+      padding: 20px 18px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+    }
+
+    .close-btn {
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .sidebar a.menu-link {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .sidebar a.menu-link:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .sidebar-profile {
+      margin-top: auto;
+      padding: 12px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-profile img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: white;
+      border: 2px solid #16a34a;
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .username {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.2;
+    }
+
+    .view-profile {
+      font-size: 12px;
+      font-weight: 600;
+      color: #16a34a;
+      text-decoration: none;
+    }
+
+    .view-profile:hover {
+      text-decoration: underline;
+    }
+
+    .main {
+      width: 100%;
+      padding: 24px;
+      margin-left: 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .toggle-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 10px;
+      background: #111827;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .title {
+      font-size: 28px;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .chart-placeholder {
+      width: 100%;
+      height: 320px;
+      background: white;
+      border-radius: 18px;
+      border: 2px dashed #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .small-box {
+      height: 220px;
+      background: white;
+      border-radius: 18px;
+      border: 2px dashed #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 16px;
+    }
+
+    .chat-bubble {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #16a34a;
+      color: white;
+      border-radius: 999px;
+      padding: 14px 18px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
+      cursor: pointer;
+      z-index: 1100;
+      max-width: 230px;
+    }
+
+    .chat-bubble::after {
+      content: "";
+      position: absolute;
+      right: 24px;
+      bottom: -8px;
+      border-width: 8px 8px 0 8px;
+      border-style: solid;
+      border-color: #16a34a transparent transparent transparent;
+    }
+
+    .chat-bubble span {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        width: 260px;
+      }
+    }
+    .logout-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  text-decoration: none;
+}
+
+.logout-link:hover {
+  text-decoration: underline;
+}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div>
+        <div class="sidebar-header">
+          <h2>Musketeers Mart</h2>
+          <button class="close-btn" id="closeBtn">×</button>
+        </div>
+
+        <a href="#" class="menu-link">Order History</a>
+        <a href="Inventory.html" class="menu-link">Inventory Management</a>
+        <a href="OrderForm.html" class="menu-link">Order Form</a>
+      </div>
+
+      <div class="sidebar-profile">
+        <img src="profile_pic_default.png" alt="User Profile">
+        <div class="profile-info">
+          <div class="username" id="sidebarUsername">user1</div>
+          <a href="#" class="view-profile" id="viewProfileLink">View Profile</a>
+          <a href="#" class="logout-link" id="logoutLink">Logout</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <button class="toggle-btn" id="toggleBtn">☰</button>
+        <div class="title">Overview of Stock Level and Sales</div>
+      </div>
+
+      <div class="chart-placeholder">
+        Line Chart Placeholder
+      </div>
+
+      <div class="bottom-grid">
+        <div class="small-box">Visual Placeholder 1</div>
+        <div class="small-box">Visual Placeholder 2</div>
+      </div>
+    </main>
+  </div>
+
+  <div class="chat-bubble" id="chatBubble">
+    <span>Hi, do you need any help?</span>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const closeBtn = document.getElementById("closeBtn");
+    const chatBubble = document.getElementById("chatBubble");
+    const sidebarUsername = document.getElementById("sidebarUsername");
+    const viewProfileLink = document.getElementById("viewProfileLink");
+
+    const username = localStorage.getItem("currentUser") || "user1";
+    sidebarUsername.textContent = username;
+
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.add("open");
+    });
+
+    closeBtn.addEventListener("click", () => {
+      sidebar.classList.remove("open");
+    });
+
+    viewProfileLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      alert("View Profile for " + username);
+    });
+    
+    const logoutLink = document.getElementById("logoutLink");
+
+    logoutLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("failedAttempts");
+        localStorage.removeItem("cooldownUntil");
+        window.location.replace("Homepage.html");
+    });
+
+    chatBubble.addEventListener("click", () => {
+      alert("AI bot will be connected here later.");
+    });
+  </script>
+</body>
+</html>
