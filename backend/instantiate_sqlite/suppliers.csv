@@ -1,0 +1,11 @@
+supplier_id,supplier_code,supplier_name,contact_name,contact_email,contact_phone,address,is_active,created_at
+1,LIONCI-001,Lion City Foods Pte Ltd,Lion Contact,info@lioncityfoods.example.com,+65 60010001,"11 Market Street, Singapore",True,2024-04-12 00:00:00
+2,EVERGR-002,Evergreen Produce Importers,Evergreen Contact,info@evergreenproduce.example.com,+65 60020002,"12 Market Street, Singapore",True,2024-12-14 00:00:00
+3,PACIFI-003,Pacific Beverages & Co.,Pacific Contact,info@pacificbeverages.example.com,+65 60030003,"13 Market Street, Singapore",True,2024-09-27 00:00:00
+4,GOLDEN-004,Golden Harvest Grocers,Golden Contact,info@goldenharvest.example.com,+65 60040004,"14 Market Street, Singapore",True,2024-04-16 00:00:00
+5,SUNRIS-005,Sunrise Dairy Supplies,Sunrise Contact,info@sunrisedairy.example.com,+65 60050005,"15 Market Street, Singapore",True,2024-03-12 00:00:00
+6,BLUEOC-006,Blue Ocean Seafood Traders,Blue Contact,info@blueoceanseafood.example.com,+65 60060006,"16 Market Street, Singapore",True,2024-07-07 00:00:00
+7,PRIMEC-007,Prime Choice Meats,Prime Contact,info@primechoicemeats.example.com,+65 60070007,"17 Market Street, Singapore",True,2024-01-21 00:00:00
+8,CLEANH-008,CleanHome Household Products,CleanHome Contact,info@cleanhome.example.com,+65 60080008,"18 Market Street, Singapore",True,2024-04-12 00:00:00
+9,FRESHC-009,Fresh & Crisp Snacks,Fresh Contact,info@freshcrispsnacks.example.com,+65 60090009,"19 Market Street, Singapore",True,2024-05-01 00:00:00
+10,HARMON-010,Harmony Personal Care,Harmony Contact,info@harmonycare.example.com,+65 60100010,"20 Market Street, Singapore",True,2024-08-02 00:00:00
