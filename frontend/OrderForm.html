@@ -18,12 +18,12 @@ body {
   background: #f3f4f6;
 }
 
+/* ================= SIDEBAR (MATCH INVENTORY) ================= */
 .layout {
   display: flex;
   min-height: 100vh;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 300px;
   background: #111827;
@@ -34,7 +34,7 @@ body {
   left: 0;
   height: 100vh;
   transform: translateX(-100%);
-  transition: 0.3s ease;
+  transition: transform 0.3s ease;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -52,22 +52,23 @@ body {
 }
 
 .close-btn {
-  background: rgba(255,255,255,0.12);
   border: none;
+  background: rgba(255,255,255,0.12);
   color: white;
   width: 36px;
   height: 36px;
   border-radius: 10px;
+  font-size: 20px;
   cursor: pointer;
 }
 
 .menu-link {
   display: block;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
   color: white;
   text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
   background: rgba(255,255,255,0.06);
 }
 
@@ -75,16 +76,52 @@ body {
   background: rgba(255,255,255,0.15);
 }
 
+/* PROFILE (same as inventory) */
 .sidebar-profile {
   margin-top: auto;
-  background: rgba(255,255,255,0.08);
   padding: 12px;
+  background: rgba(255,255,255,0.08);
   border-radius: 12px;
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-/* MAIN */
+.sidebar-profile img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+  border: 2px solid #16a34a;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.username {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.view-profile {
+  font-size: 12px;
+  color: #16a34a;
+  text-decoration: none;
+}
+
+.logout-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ================= MAIN ================= */
 .main {
   width: 100%;
   padding: 24px;
@@ -149,12 +186,6 @@ input {
   margin-top: 20px;
 }
 
-.total {
-  font-weight: 800;
-  font-size: 18px;
-}
-
-/* BUTTON */
 button.action {
   margin-top: 15px;
   padding: 10px 16px;
@@ -164,15 +195,41 @@ button.action {
   border-radius: 10px;
   cursor: pointer;
 }
+
+/* CHAT BUBBLE */
+.chat-bubble {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: #16a34a;
+  color: white;
+  border-radius: 999px;
+  padding: 14px 18px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  cursor: pointer;
+  z-index: 1100;
+  max-width: 230px;
+}
+
+.chat-bubble::after {
+  content: "";
+  position: absolute;
+  right: 24px;
+  bottom: -8px;
+  border-width: 8px 8px 0 8px;
+  border-style: solid;
+  border-color: #16a34a transparent transparent transparent;
+}
+
+.chat-bubble span {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+}
 </style>
 </head>
 
 <body>
-
-<!-- LOGO (FIXED POSITION) -->
-<div style="text-align:center; margin:15px 0;">
-  <img src="logo.jfif" style="width:220px; height:120px; object-fit:contain;">
-</div>
 
 <div class="layout">
 
@@ -186,9 +243,19 @@ button.action {
     </div>
 
     <a class="menu-link" href="MainPage.html">Dashboard</a>
-    <a class="menu-link" href="#">Order History</a>
+    <a class="menu-link" href="OrderHistory.html">Order History</a>
     <a class="menu-link" href="inventory.html">Inventory</a>
     <a class="menu-link" href="OrderForm.html">Order Form</a>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="sidebar-profile">
+    <img src="profile_pic_default.png">
+    <div class="profile-info">
+      <div class="username" id="sidebarUsername">user1</div>
+      <a href="#" class="view-profile">View Profile</a>
+      <a href="#" class="logout-link" id="logoutLink">Logout</a>
+    </div>
   </div>
 
 </aside>
@@ -196,242 +263,395 @@ button.action {
 <!-- MAIN -->
 <main class="main">
 
-  <div class="topbar">
-    <button class="toggle-btn" id="toggleBtn">☰</button>
-    <div class="page-title">Purchase Order Form</div>
+<div class="topbar">
+  <button class="toggle-btn" id="toggleBtn">☰</button>
+  <div class="page-title">Purchase Order Form</div>
+</div>
+
+<div class="card">
+
+<!-- HEADER -->
+<div style="display:flex;justify-content:space-between;">
+  <div>
+    <h2>Musketeers Mart</h2>
+    <p>123 Grocery Avenue<br>Singapore 123456</p>
+
+    <div style="margin-top:12px;"></div>
+
+    <p><strong>Supplier:</strong>
+      <select id="supplierSelect" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
+        <option value="">Loading suppliers…</option>
+      </select>
+    </p>
   </div>
 
-  <div class="card">
-
-    <!-- HEADER -->
-    <div style="display:flex;justify-content:space-between;">
-      <div>
-        <h2>Musketeers Mart</h2>
-        <p>123 Grocery Avenue<br>Singapore 123456</p>
-      </div>
-
-      <div style="text-align:right;">
-        <h3>PURCHASE ORDER</h3>
-        <p>Date: <span id="date"></span></p>
-        <p>PO No: <span id="poNo"></span></p>
-      </div>
-    </div>
-
-    <!-- TABLE -->
-    <table id="table">
-
-      <thead>
-        <tr>
-          <th>Item No</th>
-          <th>Description</th>
-          <th>Pack Size</th>
-          <th>UOM</th>
-          <th>Qty</th>
-          <th>Unit Price</th>
-          <th>Total</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr>
-          <td><input placeholder="product_id"></td>
-          <td><input placeholder="product_name"></td>
-          <td><input placeholder="pack_size"></td>
-          <td><input placeholder="unit_of_measure"></td>
-
-          <td><input type="number" class="qty" value="0"></td>
-          <td><input type="number" class="price" value="0"></td>
-
-          <td class="lineTotal">$0.00</td>
-
-          <td>
-            <button onclick="deleteRow(this)"
-              style="background:red;color:white;border:none;
-              padding:5px 10px;border-radius:6px;">
-              X
-            </button>
-          </td>
-        </tr>
-      </tbody>
-
-    </table>
-
-    <button class="action" onclick="addRow()">+ Add Item</button>
-
-    <!-- SUMMARY -->
-    <div class="summary">
-
-      <table>
-        <tr>
-          <td>Subtotal</td>
-          <td id="subtotal">$0.00</td>
-        </tr>
-
-        <tr>
-          <td>Tax (%)</td>
-          <td><input id="tax" type="number" value="9"></td>
-        </tr>
-
-        <tr>
-          <td>Total Tax</td>
-          <td id="taxAmt">$0.00</td>
-        </tr>
-
-        <tr class="total">
-          <td>TOTAL</td>
-          <td id="grand">$0.00</td>
-        </tr>
-      </table>
-
-    </div>
-
-    <button class="action" id="submit">Submit Purchase Order</button>
-
+  <div style="text-align:right;">
+    <h3>PURCHASE ORDER</h3>
+    <p>Date: <span id="date"></span></p>
+    <p>PO No: <span id="id"></span></p>
   </div>
+</div>
 
+<!-- CATEGORY FILTER -->
+<div style="margin-top:18px;display:flex;align-items:center;gap:12px;">
+  <label style="font-weight:700;font-size:14px;">Filter by Category:</label>
+  <select id="categoryFilter" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;min-width:180px;">
+    <option value="">All Categories</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<table id="table">
+<thead>
+<tr>
+  <th>Product Name</th>
+  <th>Pack Size (Description)</th>
+  <th>Brand</th>
+  <th>Unit of Measure</th>
+  <th>Qty</th>
+  <th>Unit Cost ($)</th>
+  <th>Total</th>
+  <th>Action</th>
+</tr>
+</thead>
+
+<tbody id="orderBody">
+</tbody>
+</table>
+
+<button class="action" onclick="addRow()">+ Add Item</button>
+
+<!-- SUMMARY -->
+<div class="summary">
+<table>
+<tr>
+  <td>Subtotal</td>
+  <td id="subtotal">$0.00</td>
+</tr>
+<tr>
+  <td>Tax (8%)</td>
+  <td id="taxAmt">$0.00</td>
+</tr>
+<tr>
+  <td><b>Total</b></td>
+  <td id="grand"><b>$0.00</b></td>
+</tr>
+</table>
+</div>
+
+<button class="action" id="submitBtn">Submit Purchase Order</button>
+
+</div>
 </main>
+</div>
+
+<!-- CHAT BUBBLE -->
+<div class="chat-bubble" id="chatBubble">
+  <span>Hi, do you need any help?</span>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:2000;">
+<div style="background:white;padding:25px;border-radius:12px;text-align:center;width:320px;">
+<h3>Confirm Order</h3>
+<p>Would you like to confirm your order?</p>
+
+<div style="display:flex;gap:10px;justify-content:center;margin-top:15px;">
+<button onclick="confirmOrder()" style="background:#16a34a;color:white;padding:10px 16px;border:none;border-radius:8px;">Yes</button>
+<button onclick="closeConfirm()" style="background:#dc2626;color:white;padding:10px 16px;border:none;border-radius:8px;">No</button>
+</div>
+
+</div>
 </div>
 
 <script>
 
 /* SIDEBAR */
 const sidebar = document.getElementById("sidebar");
+document.getElementById("toggleBtn").onclick = () => sidebar.classList.add("open");
+document.getElementById("closeBtn").onclick = () => sidebar.classList.remove("open");
 
-document.getElementById("toggleBtn").onclick = () =>
-  sidebar.classList.add("open");
+/* CHAT BUBBLE */
+document.getElementById("chatBubble").addEventListener("click", () => {
+  alert("AI bot will be connected here later.");
+});
 
-document.getElementById("closeBtn").onclick = () =>
-  sidebar.classList.remove("open");
+/* LOGOUT */
+document.getElementById("logoutLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  localStorage.clear();
+  window.location.href = "index.html";
+});
 
-/* DATE */
-document.getElementById("date").textContent =
-new Date().toLocaleDateString();
+/* ── State ───────────────────────────────────────────────────────────── */
+let allProducts = [];   // all products for the selected supplier
+let filteredProducts = []; // after category filter
 
-/* PO NUMBER */
-let po = parseInt(localStorage.getItem("po")) || 1000;
-document.getElementById("poNo").textContent = "PO-" + po;
+/* ── API: load suppliers ─────────────────────────────────────────────── */
+async function loadSuppliers() {
+  const sel = document.getElementById("supplierSelect");
+  try {
+    const resp = await fetch("http://127.0.0.1:3000/suppliers");
+    const body = await resp.json();
+    if (body.status !== "ok") throw new Error(body.message);
 
-/* ADD ROW */
-function addRow(){
-  const row = document.createElement("tr");
-
-  row.innerHTML = `
-    <td><input placeholder="product_id"></td>
-    <td><input placeholder="product_name"></td>
-    <td><input placeholder="pack_size"></td>
-    <td><input placeholder="unit_of_measure"></td>
-    <td><input type="number" class="qty" value="0"></td>
-    <td><input type="number" class="price" value="0"></td>
-    <td class="lineTotal">$0.00</td>
-    <td>
-      <button onclick="deleteRow(this)"
-        style="background:red;color:white;border:none;padding:5px 10px;border-radius:6px;">
-        X
-      </button>
-    </td>
-  `;
-
-  document.querySelector("#table tbody").appendChild(row);
+    sel.innerHTML = `<option value="">— Select Supplier —</option>`;
+    body.data.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.supplier_id;          // value = ID for API lookup
+      opt.dataset.name = s.supplier_name; // name saved to order
+      opt.textContent = s.supplier_name;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    sel.innerHTML = `<option value="">Failed to load suppliers</option>`;
+    console.error("Supplier load error:", err);
+  }
 }
 
-/* DELETE ROW */
-function deleteRow(btn){
-  btn.parentElement.parentElement.remove();
+/* ── API: load products for selected supplier ────────────────────────── */
+async function loadProductsForSupplier(supplierId) {
+  if (!supplierId) {
+    allProducts = [];
+    filteredProducts = [];
+    resetCategoryFilter();
+    refreshAllRowDropdowns();
+    return;
+  }
+  try {
+    const resp = await fetch(`http://127.0.0.1:3000/products-by-supplier?supplier_id=${supplierId}`);
+    const body = await resp.json();
+    if (body.status !== "ok") throw new Error(body.message);
+    allProducts = body.data;
+    populateCategoryFilter(allProducts);
+    applyCategory();
+  } catch (err) {
+    console.error("Product load error:", err);
+    allProducts = [];
+    filteredProducts = [];
+  }
+}
+
+/* ── Category filter ─────────────────────────────────────────────────── */
+function populateCategoryFilter(products) {
+  const cats = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+  const sel  = document.getElementById("categoryFilter");
+  sel.innerHTML = `<option value="">All Categories</option>`;
+  cats.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function resetCategoryFilter() {
+  const sel = document.getElementById("categoryFilter");
+  sel.innerHTML = `<option value="">All Categories</option>`;
+}
+
+function applyCategory() {
+  const cat = document.getElementById("categoryFilter").value;
+  filteredProducts = cat
+    ? allProducts.filter(p => p.category === cat)
+    : allProducts;
+  refreshAllRowDropdowns();
+}
+
+/* ── Row product dropdown ────────────────────────────────────────────── */
+function buildProductOptions() {
+  if (filteredProducts.length === 0) {
+    return `<option value="">— Select supplier first —</option>`;
+  }
+  return `<option value="">— Select product —</option>` +
+    filteredProducts.map(p =>
+      `<option value="${p.product_id}"
+        data-pack="${p.pack_size  || ''}"
+        data-brand="${p.brand     || ''}"
+        data-uom="${p.unit_of_measure || ''}"
+        data-cost="${p.base_cost  || 0}"
+      >${p.product_name}</option>`
+    ).join("");
+}
+
+function refreshAllRowDropdowns() {
+  document.querySelectorAll("#orderBody tr").forEach(row => {
+    const sel       = row.querySelector(".productSel");
+    const savedVal  = sel ? sel.value : "";
+    if (sel) {
+      sel.innerHTML = buildProductOptions();
+      if (savedVal) sel.value = savedVal;
+      fillRowFromSelect(sel);
+    }
+  });
+}
+
+function fillRowFromSelect(sel) {
+  const row = sel.closest("tr");
+  const opt = sel.options[sel.selectedIndex];
+
+  // Helper: rebuild a detail select with a single value (auto-selected)
+  function setSel(cls, val) {
+    const s = row.querySelector(cls);
+    s.innerHTML = val
+      ? `<option value="${val}">${val}</option>`
+      : `<option value="">—</option>`;
+  }
+
+  if (opt && opt.dataset.pack !== undefined) {
+    setSel(".packSize", opt.dataset.pack);
+    setSel(".brand",    opt.dataset.brand);
+    setSel(".uom",      opt.dataset.uom);
+    const priceField = row.querySelector(".price");
+    if (opt.dataset.cost) priceField.value = Number(opt.dataset.cost).toFixed(2);
+  } else {
+    setSel(".packSize", "");
+    setSel(".brand",    "");
+    setSel(".uom",      "");
+  }
   calc();
 }
 
-/* CALC */
-document.addEventListener("input", calc);
-
-function calc(){
-
-  let subtotal = 0;
-
-  document.querySelectorAll("#table tbody tr").forEach(r => {
-
-    let q = +r.querySelector(".qty")?.value || 0;
-    let p = +r.querySelector(".price")?.value || 0;
-
-    let total = q * p;
-
-    r.querySelector(".lineTotal").textContent =
-      "$" + total.toFixed(2);
-
-    subtotal += total;
-  });
-
-  document.getElementById("subtotal").textContent =
-    "$" + subtotal.toFixed(2);
-
-  let taxRate = +document.getElementById("tax").value || 0;
-
-  let tax = subtotal * taxRate / 100;
-
-  document.getElementById("taxAmt").textContent =
-    "$" + tax.toFixed(2);
-
-  document.getElementById("grand").textContent =
-    "$" + (subtotal + tax).toFixed(2);
+/* ── Add / delete rows ───────────────────────────────────────────────── */
+function makeRow() {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>
+      <select class="productSel" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+        ${buildProductOptions()}
+      </select>
+    </td>
+    <td>
+      <select class="packSize" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+        <option value="">—</option>
+      </select>
+    </td>
+    <td>
+      <select class="brand" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+        <option value="">—</option>
+      </select>
+    </td>
+    <td>
+      <select class="uom" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+        <option value="">—</option>
+      </select>
+    </td>
+    <td><input type="number" class="qty"   value="0" style="width:70px;padding:6px;"></td>
+    <td><input type="number" class="price" value="0" style="width:90px;padding:6px;"></td>
+    <td class="lineTotal" style="white-space:nowrap;">$0.00</td>
+    <td><button onclick="deleteRow(this)" style="background:red;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;">✕</button></td>
+  `;
+  tr.querySelector(".productSel").addEventListener("change", function(){ fillRowFromSelect(this); });
+  return tr;
 }
 
-/* SUBMIT */
-document.getElementById("submit").onclick = () => {
+function addRow() {
+  document.getElementById("orderBody").appendChild(makeRow());
+  calc();
+}
 
-  // increment PO
+function deleteRow(btn) {
+  btn.closest("tr").remove();
+  calc();
+}
+
+/* ── Calc totals ─────────────────────────────────────────────────────── */
+const tax_rate_pct = 8;
+
+function calc() {
+  let subtotal = 0;
+  document.querySelectorAll("#orderBody tr").forEach(r => {
+    const q = +r.querySelector(".qty").value   || 0;
+    const p = +r.querySelector(".price").value || 0;
+    const total = q * p;
+    r.querySelector(".lineTotal").textContent = "$" + total.toFixed(2);
+    subtotal += total;
+  });
+  document.getElementById("subtotal").textContent = "$" + subtotal.toFixed(2);
+  const tax = subtotal * tax_rate_pct / 100;
+  document.getElementById("taxAmt").textContent = "$" + tax.toFixed(2);
+  document.getElementById("grand").textContent  = "$" + (subtotal + tax).toFixed(2);
+}
+
+document.addEventListener("input", calc);
+
+/* ── Event: supplier change ──────────────────────────────────────────── */
+document.getElementById("supplierSelect").addEventListener("change", function() {
+  loadProductsForSupplier(this.value);
+});
+
+/* ── Event: category filter change ──────────────────────────────────── */
+document.getElementById("categoryFilter").addEventListener("change", applyCategory);
+
+/* ── DATE + PO ───────────────────────────────────────────────────────── */
+const today = new Date();
+document.getElementById("date").textContent = today.toLocaleDateString();
+let po = parseInt(localStorage.getItem("po")) || 1000;
+document.getElementById("id").textContent = po;
+
+/* ── Modal ───────────────────────────────────────────────────────────── */
+const modal = document.getElementById("confirmModal");
+document.getElementById("submitBtn").onclick = () => { modal.style.display = "flex"; };
+function closeConfirm() { modal.style.display = "none"; }
+
+/* ── Confirm / save order ────────────────────────────────────────────── */
+function confirmOrder() {
+  const supSel   = document.getElementById("supplierSelect");
+  const supplier = supSel.options[supSel.selectedIndex]?.dataset?.name || supSel.value || "Unknown Supplier";
+  const date     = document.getElementById("date").textContent;
+  const poNumber = document.getElementById("id").textContent;
+
+  let items    = [];
+  let subtotal = 0;
+
+  document.querySelectorAll("#orderBody tr").forEach(r => {
+    const productSel = r.querySelector(".productSel");
+    const productName = productSel.options[productSel.selectedIndex]?.textContent || "";
+    const packSize = r.querySelector(".packSize").value;
+    const brand    = r.querySelector(".brand").value;
+    const uom      = r.querySelector(".uom").value;
+    const qty      = +r.querySelector(".qty").value   || 0;
+    const price    = +r.querySelector(".price").value || 0;
+    const total    = qty * price;
+    subtotal += total;
+
+    items.push({ item: productName, desc: packSize, brand, uom, qty, price, total });
+  });
+
+  const tax   = subtotal * tax_rate_pct / 100;
+  const grand = subtotal + tax;
+
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+  orders.push({ po: poNumber, date, supplier, items, subtotal, tax, total: grand, status: "Sent" });
+  localStorage.setItem("orders", JSON.stringify(orders));
+
   po++;
   localStorage.setItem("po", po);
+  modal.style.display = "none";
 
-  // hide form card
   document.querySelector(".card").innerHTML = `
-    
-    <div style="
-      text-align:center;
-      padding:40px;
-    ">
-
-      <h2 style="color:#16a34a; font-size:28px;">
-        Order Sent Successfully ✅
-      </h2>
-
-      <p style="margin-top:10px; color:#6b7280;">
-        Your purchase order has been submitted.
-      </p>
-
-      <div style="margin-top:30px; display:flex; gap:15px; justify-content:center;">
-
+    <div style="text-align:center;padding:40px;">
+      <h2 style="color:#16a34a;">Order Sent Successfully ✅</h2>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
         <button onclick="location.reload()"
-          style="
-            padding:12px 18px;
-            background:#16a34a;
-            color:white;
-            border:none;
-            border-radius:10px;
-            cursor:pointer;
-          ">
-          ➕ Add New Order
+          style="background:#16a34a;color:white;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">
+          New Order
         </button>
-
         <button onclick="window.location.href='OrderHistory.html'"
-          style="
-            padding:12px 18px;
-            background:#111827;
-            color:white;
-            border:none;
-            border-radius:10px;
-            cursor:pointer;
-          ">
-          📜 View Order History
+          style="background:#111827;color:white;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">
+          View Order History
         </button>
-
+        <button onclick="window.location.href='OrderSummary.html?po=${poNumber}'"
+          style="background:#2563eb;color:white;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">
+          View Order Summary
+        </button>
       </div>
-
     </div>
-
   `;
-};
+}
 
-calc();
+/* ── Init ────────────────────────────────────────────────────────────── */
+loadSuppliers();
+addRow(); // start with one empty row
 
 </script>
 

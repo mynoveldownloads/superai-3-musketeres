@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Order Summary</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#f3f4f6;
+  margin:0;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  max-width:1000px;
+  margin:auto;
+  box-shadow:0 8px 24px rgba(0,0,0,0.08);
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:20px;
+}
+
+h2{
+  margin:0;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+
+th,td{
+  border-bottom:1px solid #ddd;
+  padding:10px;
+  text-align:left;
+}
+
+thead{
+  background:#111827;
+  color:white;
+}
+
+.summary{
+  margin-top:20px;
+  width:300px;
+  margin-left:auto;
+}
+
+.status{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#dcfce7;
+  color:#166534;
+  font-size:12px;
+}
+
+.btn-back {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 10px 20px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-back:hover {
+  background: #374151;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card" id="summaryCard">
+  Loading...
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const po = params.get("po");
+
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+let order = orders.find(o => o.po === po);
+
+const container = document.getElementById("summaryCard");
+
+if(!order){
+  container.innerHTML = `<h2>Order not found</h2><button class="btn-back" onclick="window.location.href='OrderForm.html'">← Back to Order Form</button>`;
+} else {
+
+container.innerHTML = `
+
+<div class="header">
+  <div>
+    <h2>Musketeers Mart</h2>
+    <p>Order Summary</p>
+  </div>
+
+  <div>
+    <p><b>PO:</b> ${order.po}</p>
+    <p><b>Date:</b> ${order.date}</p>
+    <p><b>Supplier:</b> ${order.supplier}</p>
+    <span class="status">${order.status}</span>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Description</th>
+      <th>Qty</th>
+      <th>Price</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    ${order.items.map(i => `
+      <tr>
+        <td>${i.item}</td>
+        <td>${i.desc}</td>
+        <td>${i.qty}</td>
+        <td>$${i.price.toFixed(2)}</td>
+        <td>$${i.total.toFixed(2)}</td>
+      </tr>
+    `).join("")}
+  </tbody>
+</table>
+
+<div class="summary">
+  <p><b>Subtotal:</b> $${order.subtotal.toFixed(2)}</p>
+  <p><b>Tax:</b> $${order.tax.toFixed(2)}</p>
+  <p><b>Total:</b> $${order.total.toFixed(2)}</p>
+</div>
+
+<button class="btn-back" onclick="window.location.href='OrderForm.html'">← Back to Order Form</button>
+
+`;
+
+}
+
+</script>
+
+</body>
+</html>

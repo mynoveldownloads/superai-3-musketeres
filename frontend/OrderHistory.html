@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Musketeers Mart - Order History</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f3f4f6;
+}
+
+/* ================= LAYOUT ================= */
+.layout {
+  display: flex;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  width: 300px;
+  background: #111827;
+  color: white;
+  padding: 20px 18px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  transform: translateX(-100%);
+  transition: 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.close-btn {
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.menu-link {
+  display: block;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  color: white;
+  text-decoration: none;
+}
+
+.menu-link:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* PROFILE */
+.sidebar-profile {
+  margin-top: auto;
+  padding: 12px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-profile img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+  border: 2px solid #16a34a;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+
+.view-profile {
+  font-size: 12px;
+  color: #16a34a;
+  text-decoration: none;
+}
+
+.logout-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* ================= MAIN ================= */
+.main {
+  width: 100%;
+  padding: 24px;
+}
+
+.topbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.toggle-btn {
+  width: 44px;
+  height: 44px;
+  background: #111827;
+  color: white;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.search {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+/* HEADER */
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.create-btn {
+  background: #16a34a;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+/* CARD */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  margin-top: 15px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+/* DATE FILTER */
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.date-filter label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.date-filter input[type="date"] {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+.date-filter input[type="date"]:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22,163,74,.15);
+}
+
+.clear-btn {
+  padding: 8px 14px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background: #e5e7eb;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  table-layout: fixed;
+}
+
+thead {
+  background: #111827;
+  color: white;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.po-link {
+  color: #16a34a;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.status {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #dcfce7;
+  color: #166534;
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+
+  <div>
+    <div class="sidebar-header">
+      <h2>Musketeers Mart</h2>
+      <button class="close-btn" id="closeBtn">×</button>
+    </div>
+
+    <a class="menu-link" href="MainPage.html">Dashboard</a>
+    <a class="menu-link" href="OrderHistory.html">Order History</a>
+    <a class="menu-link" href="inventory.html">Inventory</a>
+    <a class="menu-link" href="OrderForm.html">Order Form</a>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="sidebar-profile">
+    <img src="profile_pic_default.png">
+    <div class="profile-info">
+      <div class="username" id="sidebarUsername">user1</div>
+      <a href="#" class="view-profile">View Profile</a>
+      <a href="#" class="logout-link" id="logoutLink">Logout</a>
+    </div>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="topbar">
+    <button class="toggle-btn" id="toggleBtn">☰</button>
+    <input class="search" placeholder="Search PO / supplier / date...">
+  </div>
+
+  <div class="header-row">
+    <h2>Order History</h2>
+    <a href="OrderForm.html" class="create-btn">+ Create Order</a>
+  </div>
+
+  <div class="date-filter">
+    <label for="dateFrom">From:</label>
+    <input type="date" id="dateFrom">
+    <label for="dateTo">To:</label>
+    <input type="date" id="dateTo">
+    <button class="clear-btn" onclick="clearDates()">✕ Clear</button>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>PO Number</th>
+          <th>Date</th>
+          <th>Supplier</th>
+          <th>Total</th>
+          <th>Items</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody id="orderTable"></tbody>
+    </table>
+  </div>
+
+</main>
+</div>
+
+<script>
+
+/* SIDEBAR */
+const sidebar = document.getElementById("sidebar");
+document.getElementById("toggleBtn").onclick = () => sidebar.classList.add("open");
+document.getElementById("closeBtn").onclick = () => sidebar.classList.remove("open");
+
+/* USER */
+const username = localStorage.getItem("currentUser") || "user1";
+document.getElementById("sidebarUsername").textContent = username;
+
+/* LOGOUT */
+document.getElementById("logoutLink").onclick = (e) => {
+  e.preventDefault();
+  localStorage.clear();
+  window.location.href = "index.html";
+};
+
+/* OPEN SUMMARY */
+function openPO(po){
+  window.location.href = "OrderSummary.html?po=" + po;
+}
+
+/* ── Render helpers ─────────────────────────────────────────────────── */
+function renderRows(orders) {
+  const table = document.getElementById("orderTable");
+  table.innerHTML = "";
+
+  if (orders.length === 0) {
+    table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;">No orders found</td></tr>`;
+    return;
+  }
+
+  orders.forEach(o => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><span class="po-link" onclick="openPO('${o.po}')">${o.po}</span></td>
+      <td>${o.date}</td>
+      <td>${o.supplier}</td>
+      <td>${o.total}</td>
+      <td>${o.items}</td>
+      <td><span class="status">${o.status}</span></td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+/* ── Load orders: DB first, then merge localStorage orders ─────────── */
+async function loadOrders() {
+  const table = document.getElementById("orderTable");
+  table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;">Loading…</td></tr>`;
+
+  let dbOrders = [];
+  try {
+    const resp = await fetch("http://127.0.0.1:3000/orders");
+    const body = await resp.json();
+    if (body.status !== "ok") throw new Error(body.message);
+
+    dbOrders = body.data.map(r => ({
+      po:       r.order_number,
+      date:     r.order_date ? r.order_date.substring(0, 10) : "—",
+      supplier: r.supplier_name,
+      total:    "$" + Number(r.total_cost).toFixed(2),
+      items:    r.item_count,
+      status:   r.status,
+      source:   "db"
+    }));
+  } catch (err) {
+    console.warn("DB order load failed:", err.message);
+  }
+
+  // Merge localStorage orders (created via OrderForm)
+  const localOrders = (JSON.parse(localStorage.getItem("orders")) || []).map(o => ({
+    po:       o.po,
+    date:     o.date,
+    supplier: o.supplier,
+    total:    "$" + Number(o.total).toFixed(2),
+    items:    o.items.length,
+    status:   o.status,
+    source:   "local"
+  }));
+
+  const allOrders = [...localOrders, ...dbOrders];
+
+  // Filter based on search box
+  applySearch(allOrders);
+
+  // Store for search re-filtering
+  window._allOrders = allOrders;
+}
+
+function applySearch(orders) {
+  const q        = (document.querySelector(".search")?.value || "").toLowerCase();
+  const fromVal  = document.getElementById("dateFrom").value; // "YYYY-MM-DD" or ""
+  const toVal    = document.getElementById("dateTo").value;
+
+  const filtered = orders.filter(o => {
+    // text search
+    const matchText = !q ||
+      o.po.toLowerCase().includes(q) ||
+      o.supplier.toLowerCase().includes(q) ||
+      o.date.toLowerCase().includes(q);
+
+    // date range — compare ISO date strings directly (lexicographic = chronological)
+    const orderDate = o.date.substring(0, 10); // normalise to YYYY-MM-DD
+    const matchFrom = !fromVal || orderDate >= fromVal;
+    const matchTo   = !toVal   || orderDate <= toVal;
+
+    return matchText && matchFrom && matchTo;
+  });
+
+  renderRows(filtered);
+}
+
+function clearDates() {
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value   = "";
+  if (window._allOrders) applySearch(window._allOrders);
+}
+
+document.querySelector(".search").addEventListener("input", () => {
+  if (window._allOrders) applySearch(window._allOrders);
+});
+
+document.getElementById("dateFrom").addEventListener("change", () => {
+  if (window._allOrders) applySearch(window._allOrders);
+});
+
+document.getElementById("dateTo").addEventListener("change", () => {
+  if (window._allOrders) applySearch(window._allOrders);
+});
+
+/* INIT */
+loadOrders();
+
+</script>
+
+</body>
+</html>
