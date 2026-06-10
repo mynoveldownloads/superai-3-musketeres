@@ -22,6 +22,7 @@ from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 
 from tools import query_db, render_chart, metadata_txt_exists
+import tools as tools_module
 from stock_retrieval import handle_stock_order
 
 load_dotenv()
@@ -32,6 +33,10 @@ load_dotenv()
 ssl._create_default_https_context = ssl._create_unverified_context
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# Patch for aiohttp (used by litellm async calls in ADK)
+os.environ["SSL_CERT_FILE"] = ""
+os.environ["CURL_CA_BUNDLE"] = ""
+
 _original_session_init = requests.Session.__init__
 
 
@@ -41,6 +46,30 @@ def _patched_session_init(self, *args, **kwargs):
 
 
 requests.Session.__init__ = _patched_session_init
+
+# Patch litellm to disable SSL for async httpx and aiohttp calls
+import litellm
+litellm.ssl_verify = False
+
+# Patch aiohttp.TCPConnector to always disable SSL verification
+import aiohttp
+_original_tcp_connector_init = aiohttp.TCPConnector.__init__
+
+def _patched_tcp_connector_init(self, *args, **kwargs):
+    kwargs["ssl"] = False
+    _original_tcp_connector_init(self, *args, **kwargs)
+
+aiohttp.TCPConnector.__init__ = _patched_tcp_connector_init
+
+# Patch httpx.AsyncClient to disable SSL verification (used by litellm)
+import httpx as _httpx
+_original_async_client_init = _httpx.AsyncClient.__init__
+
+def _patched_async_client_init(self, *args, **kwargs):
+    kwargs["verify"] = False
+    _original_async_client_init(self, *args, **kwargs)
+
+_httpx.AsyncClient.__init__ = _patched_async_client_init
 
 # ==============================================================================
 # OpenRouter client — used for check_harmful() and classify_intent()
@@ -246,6 +275,9 @@ def run_data_visual_agent(user_message: str) -> dict:
     from google.adk.sessions import InMemorySessionService
     from google.genai import types
 
+    # Reset the base64 capture before running
+    tools_module.last_chart_base64 = None
+
     async def _run():
         session_id = f"data-visual-{uuid.uuid4().hex}"
         session_service = InMemorySessionService()
@@ -275,20 +307,21 @@ def run_data_visual_agent(user_message: str) -> dict:
                     if hasattr(part, "text") and part.text:
                         final_text = part.text
 
-        return {
-            "status": "success",
-            "intent": "DATA_VISUAL",
-            "message": final_text or "No response produced by ADK agent.",
-            "input_text": user_message,
-        }
+        return final_text
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        return loop.run_until_complete(_run())
+        final_text = loop.run_until_complete(_run())
     finally:
         loop.close()
         asyncio.set_event_loop(None)
+
+    return {
+        "message": final_text or "No response produced by ADK agent.",
+        "recommendation": None,
+        "base64": tools_module.last_chart_base64,
+    }
 
 # Add this function to agent.py
 def handle_general(user_input: str) -> dict:
@@ -310,10 +343,9 @@ def handle_general(user_input: str) -> dict:
         ],
     )
     return {
-        "status": "success",
-        "intent": "GENERAL",
         "message": response.choices[0].message.content.strip(),
-        "input_text": user_input,
+        "recommendation": None,
+        "base64": None,
     }
 
 # ==============================================================================
@@ -323,38 +355,35 @@ def process_payload(payload: dict) -> dict:
     """
     Main entrypoint. Accepts a dict with "input_text" and routes to the
     correct feature handler after safety and intent checks.
+
+    All paths return: {"message": str, "recommendation": dict|None, "base64": str|None}
     """
     user_input = payload.get("input_text", "")
 
     if not user_input:
         return {
-            "status": "error",
             "message": "No input_text provided in payload.",
+            "recommendation": None,
+            "base64": None,
         }
 
     # Gate 1: safety check
     if check_harmful(user_input) == "HARMFUL":
         return {
-            "status": "rejected",
-            "reason": "harmful_content",
             "message": "Your request has been flagged as harmful and cannot be processed.",
+            "recommendation": None,
+            "base64": None,
         }
 
     # Gate 2: intent routing
     intent = classify_intent(user_input)
 
     if intent == "STOCK_ORDER":
-        return handle_stock_order(user_input)       # Feature 1 — teammate, non-ADK
+        return handle_stock_order(user_input)       # Feature 1 — non-ADK
 
     if intent == "DATA_VISUAL":
         return run_data_visual_agent(user_input)    # Feature 2 — ADK LlmAgent
 
-    # return {
-    #     "status": "success",
-    #     "intent": "GENERAL",
-    #     "message": "Intent classified as a general question.",
-    #     "input_text": user_input,
-    # }
     return handle_general(user_input)
 
 
@@ -363,10 +392,9 @@ def process_payload(payload: dict) -> dict:
 # ==============================================================================
 if __name__ == "__main__":
     test_cases = [
-        {"input_text": "i need stock for green field apple"},
-        {"input_text": "Show me a graph of milk sales over the past 6 months"},
-        {"input_text": "What is the current stock level of eggs?"},
-        {"input_text": "hello there"},
+        #{"input_text": "tell me about stock order for hrmonyCare Body Wash"},
+        {"input_text": "tell me sales trends of greenffields Bananas"}
+        #{"input_text": "whats the weather rn?"}
     ]
 
     for payload in test_cases:

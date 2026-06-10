@@ -5,31 +5,54 @@ Three tools exposed to the LLM:
   - metadata_txt_exists() : Check + read agent/metadata.txt schema cache
   - query_db(sql)         : POST to FastAPI /query, returns trimmed schema/data
   - render_chart(...)     : Re-runs verified SQL internally, renders matplotlib PNG
-                            LLM never touches data values — fully deterministic.
+                            as base64. LLM never touches data values — fully deterministic.
 """
 
 import os
+import io
+import base64
 import requests
 import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib
+matplotlib.use("Agg")
 from datetime import datetime
 
-API_URL = os.getenv("DB_API_URL", "http://127.0.0.1:3000/query")
-# CHART_OUTPUT_DIR = os.getenv("CHART_OUTPUT_DIR", "./charts")
-# NEW — always saves next to tools.py regardless of launch directory
-CHART_OUTPUT_DIR = os.getenv(
-    "CHART_OUTPUT_DIR",
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "charts")
-)
-os.makedirs(CHART_OUTPUT_DIR, exist_ok=True)
+import ssl
+import json
+import httpx
+import urllib3
+import requests
+from dotenv import load_dotenv
 
-# Resolved once at import time — tools.py lives in agent/agent2/
-# so metadata.txt is one level up at agent/metadata.txt
+load_dotenv()
+
+# ==============================================================================
+# SSL FIX
+# ==============================================================================
+ssl._create_default_https_context = ssl._create_unverified_context
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+_original_session_init = requests.Session.__init__
+
+def _patched_session_init(self, *args, **kwargs):
+    _original_session_init(self, *args, **kwargs)
+    self.verify = False
+
+requests.Session.__init__ = _patched_session_init
+
+# --- OpenRouter Client Setup ---
+http_client = httpx.Client(verify=False)
+
+API_URL = os.getenv("DB_API_URL", "http://127.0.0.1:3000/query")
+
+# Resolved once at import time — tools.py lives in agent/
 _TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
 _METADATA_PATH = os.path.abspath(os.path.join(_TOOLS_DIR, "metadata.txt"))
+
+# Module-level store for the last rendered chart base64
+last_chart_base64 = None
 
 
 # ── Shared internal helper ─────────────────────────────────────────────────────
@@ -144,9 +167,7 @@ def render_chart(
 ) -> dict:
     """
     Re-executes a verified SQL query and renders the full result as a static
-    matplotlib chart saved as a PNG. Data is fetched directly from the database
-    — you do NOT pass any data values to this tool. This makes chart rendering
-    fully deterministic and immune to LLM data hallucination.
+    matplotlib chart, returned as a base64-encoded PNG string.
 
     Call this tool ONLY after:
     1. You have called query_db with this exact sql.
@@ -170,51 +191,38 @@ def render_chart(
         y_label:    Optional human-readable y-axis label.
 
     Returns:
-        On success: {'status': 'ok', 'image_path': str, 'rows_plotted': int}
-        On failure: {'status': 'error', 'message': str}
+        On success: {'message': str, 'base64': str}
+        On failure: {'message': str, 'base64': ''}
     """
-    # Fix W7: validate output dir is writable before touching matplotlib
-    if not os.access(CHART_OUTPUT_DIR, os.W_OK):
-        return {
-            "status": "error",
-            "message": f"Chart output directory '{CHART_OUTPUT_DIR}' is not writable.",
-        }
-
     # Re-fetch full dataset directly from DB — LLM never supplies values
     body = _run_sql(sql)
     if body.get("status") != "ok":
         return {
-            "status": "error",
             "message": f"SQL re-execution failed: {body.get('message', 'unknown error')}",
+            "base64": "",
         }
 
     columns = body["columns"]
     data = body["data"]
 
     if not data:
-        return {"status": "error", "message": "SQL returned 0 rows. Nothing to render."}
+        return {"message": "SQL returned 0 rows. Nothing to render.", "base64": ""}
 
-    # Validate column references before touching matplotlib
+    # Validate column references
     if x_col not in columns:
         return {
-            "status": "error",
-            "message": (
-                f"x_col '{x_col}' not found in query result. "
-                f"Available columns are: {columns}"
-            ),
+            "message": f"x_col '{x_col}' not found in query result. Available columns: {columns}",
+            "base64": "",
         }
     if chart_type != "pie" and y_col not in columns:
         return {
-            "status": "error",
-            "message": (
-                f"y_col '{y_col}' not found in query result. "
-                f"Available columns are: {columns}"
-            ),
+            "message": f"y_col '{y_col}' not found in query result. Available columns: {columns}",
+            "base64": "",
         }
 
     try:
         df = pd.DataFrame(data, columns=columns)
-        datetime_fallback = False
+        warning_msg = ""
 
         fig, ax = plt.subplots(figsize=(12, 5))
         fig.patch.set_facecolor("#f9f9f9")
@@ -233,8 +241,7 @@ def render_chart(
                 ax.xaxis.set_major_locator(mdates.MonthLocator())
                 fig.autofmt_xdate()
             except Exception:
-                # Fix W6: flag fallback instead of silently degrading
-                datetime_fallback = True
+                warning_msg = f" (Note: x_col '{x_col}' could not be parsed as datetime, rendered as string labels.)"
                 ax.plot(
                     df[x_col].astype(str),
                     pd.to_numeric(df[y_col], errors="coerce"),
@@ -262,8 +269,8 @@ def render_chart(
         else:
             plt.close(fig)
             return {
-                "status": "error",
                 "message": f"Unsupported chart_type '{chart_type}'. Use 'line', 'bar', or 'pie'.",
+                "base64": "",
             }
 
         ax.set_title(title, fontsize=14, fontweight="bold", pad=15)
@@ -274,24 +281,23 @@ def render_chart(
 
         plt.tight_layout()
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_title = "".join(c if c.isalnum() or c in "_-" else "_" for c in title)[:40]
-        filename = f"{safe_title}_{timestamp}.png"
-        image_path = os.path.join(CHART_OUTPUT_DIR, filename)
-        plt.savefig(image_path, dpi=150, bbox_inches="tight")
+        # Render to base64 instead of saving to disk
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format="png", dpi=150, bbox_inches="tight")
         plt.close(fig)
+        buffer.seek(0)
+        img_base64 = base64.b64encode(buffer.read()).decode("utf-8")
 
-        result = {
-            "status": "ok",
-            "image_path": image_path,
-            "rows_plotted": len(df),
+        # Store in module-level variable for external access
+        global last_chart_base64
+        last_chart_base64 = img_base64
+
+        message = f"Chart rendered successfully: '{title}' ({chart_type} chart, {len(df)} data points).{warning_msg}"
+
+        return {
+            "message": message,
+            "base64": img_base64,
         }
-        if datetime_fallback:
-            result["warning"] = (
-                f"x_col '{x_col}' could not be parsed as datetime. "
-                "X-axis rendered as string labels. Check date format in your SQL."
-            )
-        return result
 
     except Exception as e:
-        return {"status": "error", "message": f"render_chart failed: {str(e)}"}
+        return {"message": f"render_chart failed: {str(e)}", "base64": ""}
