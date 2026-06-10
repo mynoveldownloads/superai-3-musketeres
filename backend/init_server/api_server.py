@@ -38,8 +38,10 @@ import os
 import sqlite3
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
+import SQL_Queries
 
 # ── DB path resolution ─────────────────────────────────────────────────────────
 # Always resolve relative to THIS script file, not the working directory.
@@ -63,6 +65,14 @@ app = FastAPI(
     title="database.db Query API",
     description="Read-only SQL query interface for database.db. Only SELECT statements are permitted.",
     version="1.0.0",
+)
+
+# Allow the HTML pages (opened from file:// or any localhost port) to call the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 # ── Whitelist / Blacklist config ───────────────────────────────────────────────
@@ -215,6 +225,100 @@ async def execute_query(body: QueryRequest):
             "data": data,
         },
     )
+
+
+# ── Shared DB helper ──────────────────────────────────────────────────────────
+
+def run_query(sql: str):
+    """Execute a pre-validated SELECT query and return a JSONResponse."""
+    try:
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(sql)
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description] if cur.description else []
+        conn.close()
+    except sqlite3.OperationalError as e:
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": f"SQL execution error: {str(e)}"},
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": f"Unexpected server error: {str(e)}"},
+        )
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "ok",
+            "rows_returned": len(rows),
+            "columns": columns,
+            "data": [dict(row) for row in rows],
+        },
+    )
+
+
+# ── Named endpoints ────────────────────────────────────────────────────────────
+
+@app.get("/inventory", summary="List all active products with stock levels")
+def get_inventory():
+    """Products joined with inventory: name, brand, category, price, quantity_on_hand."""
+    return run_query(SQL_Queries.INVENTORY_LIST)
+
+
+@app.get("/products-by-supplier", summary="Products for a given supplier")
+def get_products_by_supplier(supplier_id: int):
+    """Returns active products for a specific supplier_id. Used by OrderForm item dropdown."""
+    sql = SQL_Queries.PRODUCTS_BY_SUPPLIER.format(supplier_id=int(supplier_id))
+    return run_query(sql)
+
+
+@app.get("/suppliers", summary="List all active suppliers")
+def get_suppliers():
+    """Active suppliers for populating dropdowns."""
+    return run_query(SQL_Queries.SUPPLIERS_ACTIVE)
+
+
+@app.get("/orders", summary="Order history summary")
+def get_orders():
+    """Purchase orders grouped by order number with supplier name and totals."""
+    return run_query(SQL_Queries.ORDERS_SUMMARY)
+
+
+@app.get("/dashboard", summary="Dashboard KPIs")
+def get_dashboard():
+    """Aggregated KPIs: product count, low-stock count, order count, revenue, recent orders, monthly sales, category sales, low-stock items."""
+    try:
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+
+        def scalar(sql):
+            return dict(conn.cursor().execute(sql).fetchone())
+
+        def rows(sql):
+            cur = conn.cursor()
+            cur.execute(sql)
+            return [dict(r) for r in cur.fetchall()]
+
+        data = {
+            **scalar(SQL_Queries.DASHBOARD_TOTAL_PRODUCTS),
+            **scalar(SQL_Queries.DASHBOARD_LOW_STOCK_COUNT),
+            **scalar(SQL_Queries.DASHBOARD_TOTAL_ORDERS),
+            **scalar(SQL_Queries.DASHBOARD_TOTAL_REVENUE),
+            "recent_orders":      rows(SQL_Queries.DASHBOARD_RECENT_ORDERS),
+            "top_products":       rows(SQL_Queries.DASHBOARD_TOP_PRODUCTS),
+            "sales_by_category":  rows(SQL_Queries.DASHBOARD_SALES_BY_CATEGORY),
+            "low_stock_items":    rows(SQL_Queries.DASHBOARD_LOW_STOCK_ITEMS),
+        }
+        conn.close()
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": str(e)},
+        )
+    return JSONResponse(status_code=200, content={"status": "ok", "data": data})
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────

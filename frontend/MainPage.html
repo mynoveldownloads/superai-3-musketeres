@@ -4,321 +4,336 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Musketeers Mart Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
 
-    body {
-      min-height: 100vh;
-      background: #f3f4f6;
-      overflow-x: hidden;
-    }
+    body { min-height: 100vh; background: #f3f4f6; overflow-x: hidden; }
 
-    .layout {
-      display: flex;
-      min-height: 100vh;
-    }
+    .layout { display: flex; min-height: 100vh; }
 
+    /* ── Sidebar ── */
     .sidebar {
-      width: 300px;
-      background: #111827;
-      color: white;
-      padding: 20px 18px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
+      width: 300px; background: #111827; color: white;
+      padding: 20px 18px; position: fixed; top: 0; left: 0;
+      height: 100vh; transform: translateX(-100%);
+      transition: transform 0.3s ease; z-index: 1000;
+      display: flex; flex-direction: column;
     }
-
-    .sidebar.open {
-      transform: translateX(0);
-    }
-
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .sidebar h2 {
-      font-size: 22px;
-    }
-
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .sidebar h2 { font-size: 22px; }
     .close-btn {
-      border: none;
-      background: rgba(255,255,255,0.12);
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      font-size: 20px;
-      cursor: pointer;
+      border: none; background: rgba(255,255,255,0.12); color: white;
+      width: 36px; height: 36px; border-radius: 10px; font-size: 20px; cursor: pointer;
     }
-
     .sidebar a.menu-link {
-      display: block;
-      color: white;
-      text-decoration: none;
-      padding: 12px 14px;
-      border-radius: 10px;
-      margin-bottom: 10px;
+      display: block; color: white; text-decoration: none;
+      padding: 12px 14px; border-radius: 10px; margin-bottom: 10px;
       background: rgba(255,255,255,0.06);
     }
-
-    .sidebar a.menu-link:hover {
-      background: rgba(255,255,255,0.15);
-    }
-
+    .sidebar a.menu-link:hover { background: rgba(255,255,255,0.15); }
     .sidebar-profile {
-      margin-top: auto;
-      padding: 12px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      margin-top: auto; padding: 12px; background: rgba(255,255,255,0.08);
+      border-radius: 12px; display: flex; align-items: center; gap: 10px;
     }
-
     .sidebar-profile img {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: white;
-      border: 2px solid #16a34a;
-      flex-shrink: 0;
+      width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+      background: white; border: 2px solid #16a34a; flex-shrink: 0;
     }
+    .profile-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .username { font-size: 13px; font-weight: 700; color: white; line-height: 1.2; }
+    .view-profile { font-size: 12px; font-weight: 600; color: #16a34a; text-decoration: none; }
+    .logout-link { font-size: 12px; font-weight: 700; color: #ef4444; text-decoration: none; }
 
-    .profile-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .username {
-      font-size: 13px;
-      font-weight: 700;
-      color: white;
-      line-height: 1.2;
-    }
-
-    .view-profile {
-      font-size: 12px;
-      font-weight: 600;
-      color: #16a34a;
-      text-decoration: none;
-    }
-
-    .view-profile:hover {
-      text-decoration: underline;
-    }
-
-    .main {
-      width: 100%;
-      padding: 24px;
-      margin-left: 0;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
+    /* ── Main ── */
+    .main { width: 100%; padding: 24px; }
+    .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
     .toggle-btn {
-      width: 44px;
-      height: 44px;
-      border: none;
-      border-radius: 10px;
-      background: #111827;
-      color: white;
-      font-size: 22px;
-      cursor: pointer;
+      width: 44px; height: 44px; border: none; border-radius: 10px;
+      background: #111827; color: white; font-size: 22px; cursor: pointer;
     }
+    .title { font-size: 28px; color: #111827; font-weight: 700; }
 
-    .title {
-      font-size: 28px;
-      color: #111827;
-      font-weight: 700;
-    }
-
-    .chart-placeholder {
-      width: 100%;
-      height: 320px;
-      background: white;
-      border-radius: 18px;
-      border: 2px dashed #cbd5e1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #64748b;
-      font-size: 18px;
+    /* ── KPI cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
       margin-bottom: 20px;
     }
-
-    .bottom-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+    .kpi-card {
+      background: white; border-radius: 16px;
+      padding: 20px 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     }
+    .kpi-label { font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 8px; }
+    .kpi-value { font-size: 28px; font-weight: 700; color: #111827; }
+    .kpi-value.warn { color: #dc2626; }
+    .kpi-sub { font-size: 12px; color: #9ca3af; margin-top: 4px; }
 
-    .small-box {
-      height: 220px;
-      background: white;
-      border-radius: 18px;
-      border: 2px dashed #cbd5e1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #64748b;
-      font-size: 16px;
+    /* ── Chart cards ── */
+    .chart-card {
+      background: white; border-radius: 18px;
+      padding: 20px 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
     }
+    .chart-title { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 16px; }
 
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* ── Low stock table ── */
+    .stock-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+    .stock-table th {
+      background: #111827; color: white;
+      padding: 10px 12px; text-align: left; font-size: 13px;
+    }
+    .stock-table td { padding: 9px 12px; font-size: 13px; border-bottom: 1px solid #f3f4f6; }
+    .stock-table tr:hover td { background: #f9fafb; }
+    .pill-red  { display:inline-block; padding: 3px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c; font-size:11px; font-weight:700; }
+    .pill-amber{ display:inline-block; padding: 3px 8px; border-radius:999px; background:#fef3c7; color:#92400e; font-size:11px; font-weight:700; }
+    .pill-ok   { display:inline-block; padding: 3px 8px; border-radius:999px; background:#dcfce7; color:#166534; font-size:11px; font-weight:700; }
+
+    /* ── Chat bubble ── */
     .chat-bubble {
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      background: #16a34a;
-      color: white;
-      border-radius: 999px;
-      padding: 14px 18px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.18);
-      cursor: pointer;
-      z-index: 1100;
-      max-width: 230px;
+      position: fixed; right: 20px; bottom: 20px; background: #16a34a;
+      color: white; border-radius: 999px; padding: 14px 18px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.18); cursor: pointer; z-index: 1100; max-width: 230px;
     }
-
     .chat-bubble::after {
-      content: "";
-      position: absolute;
-      right: 24px;
-      bottom: -8px;
-      border-width: 8px 8px 0 8px;
-      border-style: solid;
+      content: ""; position: absolute; right: 24px; bottom: -8px;
+      border-width: 8px 8px 0 8px; border-style: solid;
       border-color: #16a34a transparent transparent transparent;
     }
+    .chat-bubble span { display: block; font-size: 13px; font-weight: 700; }
 
-    .chat-bubble span {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .bottom-grid { grid-template-columns: 1fr; }
     }
-
-    @media (max-width: 768px) {
-      .bottom-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        width: 260px;
-      }
-    }
-    .logout-link {
-  font-size: 12px;
-  font-weight: 700;
-  color: #ef4444;
-  text-decoration: none;
-}
-
-.logout-link:hover {
-  text-decoration: underline;
-}
   </style>
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar" id="sidebar">
-      <div>
-        <div class="sidebar-header">
-          <h2>Musketeers Mart</h2>
-          <button class="close-btn" id="closeBtn">×</button>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <h2>Musketeers Mart</h2>
+        <button class="close-btn" id="closeBtn">×</button>
+      </div>
+      <a href="MainPage.html" class="menu-link">Dashboard</a>
+      <a href="OrderHistory.html" class="menu-link">Order History</a>
+      <a href="Inventory.html" class="menu-link">Inventory Management</a>
+      <a href="OrderForm.html" class="menu-link">Order Form</a>
+    </div>
+    <div class="sidebar-profile">
+      <img src="profile_pic_default.png" alt="User Profile">
+      <div class="profile-info">
+        <div class="username" id="sidebarUsername">user1</div>
+        <a href="#" class="view-profile" id="viewProfileLink">View Profile</a>
+        <a href="#" class="logout-link" id="logoutLink">Logout</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <button class="toggle-btn" id="toggleBtn">☰</button>
+      <div class="title">Dashboard</div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value" id="kpiRevenue">—</div>
+        <div class="kpi-sub">All-time sales</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Orders</div>
+        <div class="kpi-value" id="kpiOrders">—</div>
+        <div class="kpi-sub">Purchase orders</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active Products</div>
+        <div class="kpi-value" id="kpiProducts">—</div>
+        <div class="kpi-sub">Non-discontinued</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Low Stock Alerts</div>
+        <div class="kpi-value warn" id="kpiLowStock">—</div>
+        <div class="kpi-sub">At or below reorder point</div>
+      </div>
+    </div>
+
+    <!-- MAIN CHART: top 10 products by revenue -->
+    <div class="chart-card">
+      <div class="chart-title">Top 10 Best-Selling Products by Revenue</div>
+      <canvas id="lineChart" height="120"></canvas>
+    </div>
+
+    <!-- BOTTOM: bar chart + low stock table -->
+    <div class="bottom-grid">
+      <div class="chart-card">
+        <div class="chart-title">Revenue by Category</div>
+        <canvas id="barChart" height="220"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Low Stock Products</div>
+        <div style="overflow-y:auto;max-height:280px;">
+          <table class="stock-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>On Hand</th>
+                <th>Reorder At</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="lowStockBody">
+              <tr><td colspan="5" style="text-align:center;padding:16px;">Loading…</td></tr>
+            </tbody>
+          </table>
         </div>
-
-        <a href="#" class="menu-link">Order History</a>
-        <a href="Inventory.html" class="menu-link">Inventory Management</a>
-        <a href="OrderForm.html" class="menu-link">Order Form</a>
       </div>
+    </div>
+  </main>
+</div>
 
-      <div class="sidebar-profile">
-        <img src="profile_pic_default.png" alt="User Profile">
-        <div class="profile-info">
-          <div class="username" id="sidebarUsername">user1</div>
-          <a href="#" class="view-profile" id="viewProfileLink">View Profile</a>
-          <a href="#" class="logout-link" id="logoutLink">Logout</a>
-        </div>
-      </div>
-    </aside>
+<div class="chat-bubble" id="chatBubble">
+  <span>Hi, do you need any help?</span>
+</div>
 
-    <main class="main">
-      <div class="topbar">
-        <button class="toggle-btn" id="toggleBtn">☰</button>
-        <div class="title">Overview of Stock Level and Sales</div>
-      </div>
+<script>
+  /* ── Sidebar ─────────────────────────────────────────────────────── */
+  const sidebar = document.getElementById("sidebar");
+  document.getElementById("toggleBtn").onclick = () => sidebar.classList.add("open");
+  document.getElementById("closeBtn").onclick  = () => sidebar.classList.remove("open");
 
-      <div class="chart-placeholder">
-        Line Chart Placeholder
-      </div>
+  const username = localStorage.getItem("currentUser") || "user1";
+  document.getElementById("sidebarUsername").textContent = username;
 
-      <div class="bottom-grid">
-        <div class="small-box">Visual Placeholder 1</div>
-        <div class="small-box">Visual Placeholder 2</div>
-      </div>
-    </main>
-  </div>
+  document.getElementById("viewProfileLink").addEventListener("click", e => {
+    e.preventDefault(); alert("View Profile for " + username);
+  });
+  document.getElementById("logoutLink").addEventListener("click", e => {
+    e.preventDefault();
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("failedAttempts");
+    localStorage.removeItem("cooldownUntil");
+    window.location.replace("index.html");
+  });
+  document.getElementById("chatBubble").onclick = () => alert("AI bot will be connected here later.");
 
-  <div class="chat-bubble" id="chatBubble">
-    <span>Hi, do you need any help?</span>
-  </div>
+  /* ── Dashboard data ──────────────────────────────────────────────── */
+  async function loadDashboard() {
+    try {
+      const resp = await fetch("http://127.0.0.1:3000/dashboard");
+      const body = await resp.json();
+      if (body.status !== "ok") throw new Error(body.message);
+      const d = body.data;
 
-  <script>
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleBtn");
-    const closeBtn = document.getElementById("closeBtn");
-    const chatBubble = document.getElementById("chatBubble");
-    const sidebarUsername = document.getElementById("sidebarUsername");
-    const viewProfileLink = document.getElementById("viewProfileLink");
+      // KPI cards
+      document.getElementById("kpiRevenue").textContent =
+        "$" + Number(d.total_revenue || 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById("kpiOrders").textContent   = Number(d.total_orders   || 0).toLocaleString();
+      document.getElementById("kpiProducts").textContent = Number(d.total_products || 0).toLocaleString();
+      document.getElementById("kpiLowStock").textContent = Number(d.low_stock_count || 0).toLocaleString();
 
-    const username = localStorage.getItem("currentUser") || "user1";
-    sidebarUsername.textContent = username;
+      // Main chart — top 10 products by revenue (horizontal bar)
+      const topNames = d.top_products.map(r => r.product_name);
+      const topRevs  = d.top_products.map(r => r.revenue);
+      const topColors = topRevs.map((_, i) => `hsl(${140 + i * 18}, 55%, 45%)`);
 
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.add("open");
-    });
+      new Chart(document.getElementById("lineChart"), {
+        type: "bar",
+        data: {
+          labels: topNames,
+          datasets: [{
+            label: "Revenue ($)",
+            data: topRevs,
+            backgroundColor: topColors,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          indexAxis: "y",   // horizontal bars
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => " $" + Number(ctx.raw).toLocaleString("en-SG", { minimumFractionDigits: 2 })
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { callback: v => "$" + Number(v).toLocaleString() } },
+            y: { ticks: { font: { size: 12 } } }
+          }
+        }
+      });
 
-    closeBtn.addEventListener("click", () => {
-      sidebar.classList.remove("open");
-    });
+      // Bar chart — revenue by category
+      const cats    = d.sales_by_category.map(r => r.category);
+      const catRevs = d.sales_by_category.map(r => r.revenue);
+      const colors  = cats.map((_, i) => `hsl(${(i * 37) % 360}, 60%, 52%)`);
+      new Chart(document.getElementById("barChart"), {
+        type: "bar",
+        data: {
+          labels: cats,
+          datasets: [{
+            label: "Revenue ($)",
+            data: catRevs,
+            backgroundColor: colors,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { maxRotation: 35, font: { size: 11 } } },
+            y: { ticks: { callback: v => "$" + Number(v).toLocaleString() } }
+          }
+        }
+      });
 
-    viewProfileLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      alert("View Profile for " + username);
-    });
-    
-    const logoutLink = document.getElementById("logoutLink");
+      // Low stock table
+      const tbody = document.getElementById("lowStockBody");
+      if (!d.low_stock_items || d.low_stock_items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:16px;">All stock levels OK</td></tr>`;
+      } else {
+        tbody.innerHTML = d.low_stock_items.map(r => {
+          const onHand  = Number(r.quantity_on_hand);
+          const reorder = Number(r.reorder_point);
+          let pill;
+          if (onHand <= 0)            pill = `<span class="pill-red">Out of Stock</span>`;
+          else if (onHand <= reorder) pill = `<span class="pill-red">Below Reorder</span>`;
+          else if (onHand <= reorder * 1.2) pill = `<span class="pill-amber">Near Reorder</span>`;
+          else                        pill = `<span class="pill-ok">OK</span>`;
+          return `
+            <tr>
+              <td>${r.product_name}</td>
+              <td>${r.category || "—"}</td>
+              <td>${onHand}</td>
+              <td>${reorder}</td>
+              <td>${pill}</td>
+            </tr>`;
+        }).join("");
+      }
 
-    logoutLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        localStorage.removeItem("currentUser");
-        localStorage.removeItem("failedAttempts");
-        localStorage.removeItem("cooldownUntil");
-        window.location.replace("Homepage.html");
-    });
+    } catch (err) {
+      console.error("Dashboard load error:", err);
+      document.querySelector(".title").textContent = "Dashboard — failed to load data";
+    }
+  }
 
-    chatBubble.addEventListener("click", () => {
-      alert("AI bot will be connected here later.");
-    });
-  </script>
+  loadDashboard();
+</script>
 </body>
 </html>
