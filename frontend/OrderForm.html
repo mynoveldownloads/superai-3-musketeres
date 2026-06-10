@@ -653,6 +653,62 @@ function confirmOrder() {
 loadSuppliers();
 addRow(); // start with one empty row
 
+/* ── Auto-populate from URL params (chatbot → order form navigation) ── */
+(async function autoPopulateFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const supplierParam = params.get("supplier");
+  const productParam  = params.get("product");
+  const qtyParam      = params.get("qty");
+
+  if (!supplierParam && !productParam) return; // no prefill needed
+
+  // Wait for suppliers to load (they load async)
+  const sel = document.getElementById("supplierSelect");
+  let attempts = 0;
+  while (sel.options.length <= 1 && attempts < 30) {
+    await new Promise(r => setTimeout(r, 200));
+    attempts++;
+  }
+
+  // Select the supplier by matching name (case-insensitive)
+  if (supplierParam) {
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].textContent.toLowerCase().includes(supplierParam.toLowerCase())) {
+        sel.selectedIndex = i;
+        break;
+      }
+    }
+    // Trigger product loading for this supplier
+    await loadProductsForSupplier(sel.value);
+  }
+
+  // Wait for products to load
+  await new Promise(r => setTimeout(r, 500));
+
+  // Select the product in the first row
+  if (productParam) {
+    const row = document.querySelector("#orderBody tr");
+    if (row) {
+      const productSel = row.querySelector(".productSel");
+      if (productSel) {
+        for (let i = 0; i < productSel.options.length; i++) {
+          if (productSel.options[i].textContent.toLowerCase().includes(productParam.toLowerCase())) {
+            productSel.selectedIndex = i;
+            fillRowFromSelect(productSel);
+            break;
+          }
+        }
+      }
+      // Set qty
+      if (qtyParam) {
+        const qtyInput = row.querySelector(".qty");
+        if (qtyInput) qtyInput.value = qtyParam;
+      }
+      calc();
+    }
+  }
+})();
+
 </script>
 
   <script src="chatbot.js"></script>

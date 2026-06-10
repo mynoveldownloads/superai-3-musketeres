@@ -90,6 +90,8 @@ class ChatResponse(BaseModel):
     session_id: str
     response: str             # assistant text
     image_url: str | None     # browser-accessible chart PNG URL, or None
+    base64: str | None        # base64-encoded PNG chart, or None
+    recommendation: dict | None  # { product_name, supplier_name, qty } or None
     intent: str               # STOCK_ORDER | DATA_VISUAL | GENERAL | REJECTED | ERROR
     history: list[ChatMessage]
 
@@ -162,10 +164,13 @@ def chat(req: ChatRequest):
     # 4. Extract text
     response_text = result.get("message", "Sorry, I could not process that request.")
 
-    # 5. Extract chart URL for DATA_VISUAL
+    # 5. Extract chart: base64 from agent, image_url from file path
     image_url = None
+    base64_img = result.get("base64", None)
+    recommendation = result.get("recommendation", None)
     if intent == "DATA_VISUAL":
-        image_url = extract_image_url(result)
+        if not base64_img:
+            image_url = extract_image_url(result)
         response_text = clean_message_text(response_text)
 
     # 6. Record assistant turn
@@ -175,6 +180,8 @@ def chat(req: ChatRequest):
         session_id=req.session_id,
         response=response_text,
         image_url=image_url,
+        base64=base64_img,
+        recommendation=recommendation,
         intent=intent,
         history=history,
     )

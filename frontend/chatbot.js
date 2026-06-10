@@ -292,6 +292,27 @@
 
       appendMsg(data.response, "bot", imageUrl);
 
+      // If recommendation exists, show "Place Order" button
+      if (data.recommendation && data.recommendation.product_name) {
+        const rec = data.recommendation;
+        const params = new URLSearchParams({
+          supplier: rec.supplier_name || "",
+          product:  rec.product_name  || "",
+          qty:      rec.qty || 1
+        });
+        const btnWrap = document.createElement("div");
+        btnWrap.style.cssText = "align-self:flex-start;margin-top:8px;";
+        btnWrap.innerHTML = `
+          <button onclick="window.location.href='OrderForm.html?${params.toString()}'"
+            style="background:linear-gradient(135deg,#16a34a,#15803d);color:white;border:none;
+            padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;">
+            📋 Place Order → ${rec.product_name} (${rec.qty} units)
+          </button>
+        `;
+        messagesEl.insertBefore(btnWrap, typingEl);
+        scrollBottom();
+      }
+
     } catch (err) {
       hideTyping();
       appendMsg("⚠️ Could not reach the AI agent. Make sure the server is running on port 5000.", "bot", null);
