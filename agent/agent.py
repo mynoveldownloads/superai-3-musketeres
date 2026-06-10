@@ -392,9 +392,9 @@ def process_payload(payload: dict) -> dict:
 # ==============================================================================
 if __name__ == "__main__":
     test_cases = [
-        #{"input_text": "tell me about stock order for hrmonyCare Body Wash"},
-        {"input_text": "tell me sales trends of greenffields Bananas"}
-        #{"input_text": "whats the weather rn?"}
+        {"input_text": "tell me about stock order for hrmonyCare Body Wash"}
+        #{"input_text": "tell me sales trends of greenffields Bananas"},
+        #{"input_text": "whats the weather rn?"},
     ]
 
     for payload in test_cases:

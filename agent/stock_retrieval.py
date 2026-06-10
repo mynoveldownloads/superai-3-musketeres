@@ -354,13 +354,16 @@ def handle_stock_order(user_input: str) -> dict:
         inventory_info=inventory_info,
     )
 
-    # Build final output with supplier_name injected into recommendation
+    # Build final output — only qty, product_name, supplier_name
     rec = recommendation.get("recommendation", {})
-    rec["product_name"] = product_name
-    rec["supplier_name"] = supplier_name
+    final_rec = {
+        "product_name": product_name,
+        "supplier_name": supplier_name,
+        "qty": rec.get("qty", 0),
+    }
 
     return {
         "message": recommendation.get("message", ""),
-        "recommendation": rec,
+        "recommendation": final_rec,
         "base64": None,
     }
