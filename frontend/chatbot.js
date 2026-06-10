@@ -203,6 +203,9 @@
   const inputEl    = document.getElementById("cwInput");
   const typingEl   = document.getElementById("cwTyping");
 
+  const AGENT_URL  = "http://127.0.0.1:5000/chat";
+  const SESSION_ID = crypto.randomUUID(); // unique per page load
+
   function timeNow() {
     return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
@@ -211,51 +214,92 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function appendMsg(text, role) {
+  /** Convert basic markdown to HTML */
+  function renderMarkdown(text) {
+    return text
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/^[•\-\*] (.+)$/gm, "<li>$1</li>")
+      .replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>")
+      .replace(/\n/g, "<br>");
+  }
+
+  function appendMsg(text, role, imageUrl) {
+    // Text bubble
     const bubble = document.createElement("div");
     bubble.className = `cw-msg ${role}`;
-    bubble.textContent = text;
-
-    const time = document.createElement("div");
-    time.className = `cw-time ${role === "user" ? "right" : "left"}`;
-    time.textContent = timeNow();
-
+    if (role === "bot") {
+      bubble.innerHTML = renderMarkdown(text);
+    } else {
+      bubble.textContent = text;
+    }
     messagesEl.insertBefore(bubble, typingEl);
+
+    // Chart image as its own element below the bubble
+    if (imageUrl) {
+      const imgWrap = document.createElement("div");
+      imgWrap.style.cssText = "align-self:flex-start;max-width:90%;margin-top:4px;";
+
+      const img = document.createElement("img");
+      img.src   = imageUrl;
+      img.alt   = "Chart";
+      img.style.cssText = "max-width:100%;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.12);display:block;";
+      img.onerror = () => {
+        imgWrap.innerHTML = "<span style='color:#ef4444;font-size:12px;'>⚠️ Chart could not be loaded</span>";
+      };
+
+      imgWrap.appendChild(img);
+      messagesEl.insertBefore(imgWrap, typingEl);
+    }
+
+    // Timestamp
+    const time = document.createElement("div");
+    time.className   = `cw-time ${role === "user" ? "right" : "left"}`;
+    time.textContent = timeNow();
     messagesEl.insertBefore(time, typingEl);
+
     scrollBottom();
   }
 
   function showTyping() { typingEl.classList.add("active");    scrollBottom(); }
   function hideTyping() { typingEl.classList.remove("active"); }
 
-  const botReplies = [
-    "I'm still learning! A human agent will follow up shortly.",
-    "Great question — let me check on that for you.",
-    "Thanks for reaching out! Our team will get back to you soon.",
-    "I've noted your message. Is there anything else I can help with?",
-    "Sure thing! Could you provide a bit more detail?",
-    "Let me look into that for you right away.",
-  ];
-  let replyIndex = 0;
-
-  function botReply() {
-    showTyping();
-    setTimeout(() => {
-      hideTyping();
-      appendMsg(botReplies[replyIndex % botReplies.length], "bot");
-      replyIndex++;
-    }, 1200);
-  }
-
-  function sendMessage() {
+  async function sendMessage() {
     const text = inputEl.value.trim();
     if (!text) return;
-    appendMsg(text, "user");
+
+    appendMsg(text, "user", null);
     inputEl.value = "";
-    botReply();
+    showTyping();
+
+    try {
+      const resp = await fetch(AGENT_URL, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ session_id: SESSION_ID, message: text }),
+      });
+
+      if (!resp.ok) throw new Error(`Server ${resp.status}`);
+
+      const data = await resp.json();
+      hideTyping();
+
+      // Prefer base64 for image rendering, fall back to image_url
+      const imageUrl = data.base64
+        ? `data:image/png;base64,${data.base64}`
+        : (data.image_url || null);
+
+      appendMsg(data.response, "bot", imageUrl);
+
+    } catch (err) {
+      hideTyping();
+      appendMsg("⚠️ Could not reach the AI agent. Make sure the server is running on port 5000.", "bot", null);
+      console.error("Agent error:", err);
+    }
   }
 
-  document.getElementById("cwSendBtn").addEventListener("click", sendMessage);
+  document.getElementById("cwSendBtn").addEventListener("click", () => sendMessage());
   inputEl.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
 
   // Close on X button
