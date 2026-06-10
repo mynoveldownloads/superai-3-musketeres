@@ -305,16 +305,18 @@ def handle_stock_order(user_input: str) -> dict:
     product_id = get_product_id(product_name)
     if product_id == 0:
         return {
-            "status": "error",
             "message": f"Could not find product '{product_name}' in the database.",
+            "recommendation": None,
+            "base64": None,
         }
 
     # Step 3: Query sales figures for Apr/May 2025
     sales_data = get_sales_figures(product_id)
     if not sales_data:
         return {
-            "status": "error",
             "message": f"No sales data found for product '{product_name}' (ID: {product_id}) in Apr/May 2025.",
+            "recommendation": None,
+            "base64": None,
         }
 
     # Step 4: Run RFR model prediction
@@ -337,7 +339,13 @@ def handle_stock_order(user_input: str) -> dict:
     # Step 7: Get current inventory level
     inventory_info = get_inventory_level(product_id)
 
-    # Step 8: Final LLM recommendation
+    # Step 8: Get supplier name
+    supplier_sql = f"SELECT s.supplier_name FROM suppliers s INNER JOIN products p ON s.supplier_id=p.supplier_id WHERE p.product_id={product_id};"
+    supplier_result = execute_sql_function(supplier_sql)
+    supplier_data = extract_data(supplier_result)
+    supplier_name = supplier_data[0].get("supplier_name", "Unknown") if supplier_data else "Unknown"
+
+    # Step 9: Final LLM recommendation
     recommendation = final_recommendation(
         product_name=product_name,
         product_id=product_id,
@@ -346,7 +354,16 @@ def handle_stock_order(user_input: str) -> dict:
         inventory_info=inventory_info,
     )
 
+    # Build final output — only qty, product_name, supplier_name
+    rec = recommendation.get("recommendation", {})
+    final_rec = {
+        "product_name": product_name,
+        "supplier_name": supplier_name,
+        "qty": rec.get("qty", 0),
+    }
+
     return {
         "message": recommendation.get("message", ""),
-        "recommendation": recommendation.get("recommendation", {}),
+        "recommendation": final_rec,
+        "base64": None,
     }
