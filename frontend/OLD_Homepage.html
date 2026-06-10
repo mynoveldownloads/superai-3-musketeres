@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Musketeers Mart</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(rgba(15,23,42,.55), rgba(15,23,42,.55)),
+      url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1600&q=80');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,.94);
+      border-radius: 20px;
+      padding: 34px 30px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+    }
+    .logo-wrap { display: flex; justify-content: center; margin-bottom: 18px; }
+    .logo {
+      width: 110px; height: 110px; object-fit: contain; border-radius: 18px;
+      background: white; padding: 10px; border: 1px solid #e5e7eb;
+      box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    }
+    h1 { text-align: center; font-size: 30px; color: #111827; margin-bottom: 8px; }
+    p { text-align: center; color: #6b7280; margin-bottom: 24px; font-size: 14px; }
+    label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #374151; }
+    input {
+      width: 100%; padding: 14px 15px; margin-bottom: 18px;
+      border: 1px solid #d1d5db; border-radius: 12px; font-size: 15px; outline: none;
+    }
+    input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.15); }
+    .forgot {
+      display: inline-block; margin-top: -2px; margin-bottom: 22px; color: #16a34a;
+      font-size: 13px; text-decoration: none; font-weight: 600;
+    }
+    .forgot:hover { text-decoration: underline; }
+    button {
+      width: 100%; padding: 14px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #16a34a, #15803d); color: white;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: .2s ease;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(22,163,74,.25); }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .msg { margin-top: 14px; text-align: center; font-size: 14px; font-weight: 700; }
+    .ok { color: #15803d; }
+    .bad { color: #dc2626; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">
+      <img class="logo" src="logo.jfif" alt="Musketeers Mart logo">
+    </div>
+
+    <h1>Musketeers Mart</h1>
+    <p>Fresh groceries, fast checkout, and a modern shopping experience.</p>
+
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter password" required>
+
+      <a class="forgot" href="Reset_password.html">Forgot your password?</a>
+
+      <button type="submit" id="loginBtn">Login</button>
+      <div id="message" class="msg"></div>
+    </form>
+  </div>
+
+  <script>
+    const users = [
+      { username: "user1", password: "1234" },
+      { username: "user2", password: "9907" }
+    ];
+
+    const MAX_ATTEMPTS = 5;
+    const COOLDOWN_MS = 30000;
+
+    const form = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+    const button = document.getElementById("loginBtn");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+
+    let failedAttempts = parseInt(localStorage.getItem("failedAttempts")) || 0;
+    let cooldownUntil = parseInt(localStorage.getItem("cooldownUntil")) || 0;
+
+    function enableLogin() {
+      button.disabled = false;
+      usernameInput.disabled = false;
+      passwordInput.disabled = false;
+      failedAttempts = 0;
+      localStorage.setItem("failedAttempts", "0");
+      localStorage.removeItem("cooldownUntil");
+      message.textContent = "You can try again now.";
+      message.className = "msg ok";
+    }
+
+    function startCooldown() {
+      const endsAt = Date.now() + COOLDOWN_MS;
+      localStorage.setItem("cooldownUntil", String(endsAt));
+
+      button.disabled = true;
+      usernameInput.disabled = true;
+      passwordInput.disabled = true;
+      message.textContent = "Too many failed attempts. Try again in 30 seconds.";
+      message.className = "msg bad";
+
+      setTimeout(() => {
+        if (Date.now() >= endsAt) {
+          enableLogin();
+        }
+      }, COOLDOWN_MS);
+    }
+
+    function checkCooldownOnLoad() {
+      if (cooldownUntil && Date.now() < cooldownUntil) {
+        button.disabled = true;
+        usernameInput.disabled = true;
+        passwordInput.disabled = true;
+
+        const remaining = Math.ceil((cooldownUntil - Date.now()) / 1000);
+        message.textContent = `Too many failed attempts. Try again in ${remaining} seconds.`;
+        message.className = "msg bad";
+
+        setTimeout(() => {
+          if (Date.now() >= cooldownUntil) {
+            enableLogin();
+          } else {
+            checkCooldownOnLoad();
+          }
+        }, 1000);
+      } else if (cooldownUntil && Date.now() >= cooldownUntil) {
+        enableLogin();
+      }
+    }
+
+    checkCooldownOnLoad();
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      if (cooldownUntil && Date.now() < cooldownUntil) {
+        checkCooldownOnLoad();
+        return;
+      }
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      const found = users.find(
+        user => user.username === username && user.password === password
+      );
+
+      if (found) {
+        message.textContent = "Login successful!";
+        message.className = "msg ok";
+        failedAttempts = 0;
+        localStorage.setItem("failedAttempts", "0");
+        window.location.href = "MainPage.html";
+      } else {
+        failedAttempts++;
+        localStorage.setItem("failedAttempts", String(failedAttempts));
+
+        if (failedAttempts >= MAX_ATTEMPTS) {
+          startCooldown();
+        } else {
+          message.textContent = `Invalid username or password. ${MAX_ATTEMPTS - failedAttempts} attempts left.`;
+          message.className = "msg bad";
+        }
+      }
+    });
+  </script>
+</body>
+</html>

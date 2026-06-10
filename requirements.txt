@@ -1,0 +1,20 @@
+# Core ADK + LiteLLM bridge
+google-adk
+litellm
+
+# OpenAI-compatible client (for your teammate's agent.py)
+openai
+
+# HTTP + data
+requests
+httpx
+pandas
+
+# Charting
+matplotlib
+
+# Env + secrets
+python-dotenv
+
+# Exa search (used in your existing agent.py test block)
+exa-py

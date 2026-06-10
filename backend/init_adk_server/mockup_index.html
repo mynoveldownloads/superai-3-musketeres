@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supermarket Inventory Chatbot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      padding: 24px 16px;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    /* session badge */
+    #session-badge {
+      font-size: 0.7rem;
+      color: #888;
+      margin-bottom: 16px;
+      font-family: monospace;
+    }
+
+    /* chat window */
+    #chat-window {
+      width: 100%;
+      max-width: 720px;
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    /* individual message bubbles */
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+    }
+    .msg.user  { align-self: flex-end; align-items: flex-end; }
+    .msg.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg.user .bubble {
+      background: #0084ff;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.assistant .bubble {
+      background: #f1f0f0;
+      color: #222;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* intent badge shown under assistant messages */
+    .intent-badge {
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-top: 4px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .intent-STOCK_ORDER { background: #fff3cd; color: #856404; }
+    .intent-DATA_VISUAL  { background: #d1ecf1; color: #0c5460; }
+    .intent-GENERAL      { background: #e2e3e5; color: #383d41; }
+    .intent-REJECTED     { background: #f8d7da; color: #721c24; }
+    .intent-ERROR        { background: #f8d7da; color: #721c24; }
+    .intent-UNKNOWN      { background: #e2e3e5; color: #383d41; }
+
+    /* chart image */
+    .chart-img {
+      margin-top: 10px;
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    /* typing indicator */
+    .typing .bubble {
+      color: #999;
+      font-style: italic;
+    }
+
+    /* input row */
+    #input-row {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #user-input:focus { border-color: #0084ff; }
+
+    #send-btn {
+      padding: 12px 22px;
+      background: #0084ff;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #send-btn:hover  { background: #006edb; }
+    #send-btn:disabled { background: #aaa; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <h1>🛒 Supermarket Inventory Chatbot</h1>
+  <div id="session-badge">Loading session...</div>
+
+  <div id="chat-window"></div>
+
+  <div id="input-row">
+    <input
+      id="user-input"
+      type="text"
+      placeholder="Ask about stock, charts, or inventory..."
+      autocomplete="off"
+    />
+    <button id="send-btn">Send</button>
+  </div>
+
+<script>
+  const API_BASE = "http://localhost:5000";
+
+  // Generate a session ID once per page load.
+  // Refreshing the page creates a new ID → fresh conversation history.
+  const sessionId = crypto.randomUUID();
+  document.getElementById("session-badge").textContent = `Session: ${sessionId}`;
+
+  const chatWindow  = document.getElementById("chat-window");
+  const userInput   = document.getElementById("user-input");
+  const sendBtn     = document.getElementById("send-btn");
+
+  // ── Render helpers ──────────────────────────────────────────────────────────
+
+  function appendMessage(role, content, intent = null, imageUrl = null) {
+    const wrap = document.createElement("div");
+    wrap.className = `msg ${role}`;
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = content;
+    wrap.appendChild(bubble);
+
+    if (intent && role === "assistant") {
+      const badge = document.createElement("span");
+      badge.className = `intent-badge intent-${intent}`;
+      badge.textContent = intent.replace("_", " ");
+      wrap.appendChild(badge);
+    }
+
+    if (imageUrl) {
+      const img = document.createElement("img");
+      img.src = imageUrl;
+      img.className = "chart-img";
+      img.alt = "Chart";
+      wrap.appendChild(img);
+    }
+
+    chatWindow.appendChild(wrap);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    return wrap;
+  }
+
+  function appendTyping() {
+    return appendMessage("assistant", "Thinking…", null, null);
+  }
+
+  // ── Send message ────────────────────────────────────────────────────────────
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    userInput.value = "";
+    sendBtn.disabled = true;
+    userInput.disabled = true;
+
+    // Show user bubble immediately
+    appendMessage("user", text);
+
+    // Show typing indicator
+    const typingEl = appendTyping();
+    typingEl.classList.add("typing");
+
+    try {
+      const res = await fetch(`${API_BASE}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, message: text }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      // Replace typing indicator with real response
+      typingEl.remove();
+      appendMessage("assistant", data.response, data.intent, data.image_url);
+
+    } catch (err) {
+      typingEl.remove();
+      appendMessage("assistant", `⚠️ Error: ${err.message}`, "ERROR");
+    } finally {
+      sendBtn.disabled = false;
+      userInput.disabled = false;
+      userInput.focus();
+    }
+  }
+
+  // ── Event listeners ─────────────────────────────────────────────────────────
+
+  sendBtn.addEventListener("click", sendMessage);
+
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // ── Greeting on load ────────────────────────────────────────────────────────
+
+  window.addEventListener("load", () => {
+    appendMessage(
+      "assistant",
+      "Hi! I'm your supermarket inventory assistant.\n\nYou can ask me things like:\n• \"I need stock for green field apple\"\n• \"Show me a graph of milk sales over the past 6 months\"\n• \"What is the current stock level of eggs?\"",
+      "GENERAL"
+    );
+    userInput.focus();
+  });
+</script>
+</body>
+</html>
