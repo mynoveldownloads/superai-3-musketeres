@@ -227,7 +227,7 @@
     localStorage.removeItem("cooldownUntil");
     window.location.replace("index.html");
   });
-  document.getElementById("chatBubble").onclick = () => alert("AI bot will be connected here later.");
+  document.getElementById("chatBubble").onclick = () => openChat();
 
   /* ── Dashboard data ──────────────────────────────────────────────── */
   async function loadDashboard() {
@@ -335,5 +335,6 @@
 
   loadDashboard();
 </script>
+  <script src="chatbot.js"></script>
 </body>
 </html>
