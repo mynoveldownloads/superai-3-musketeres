@@ -191,9 +191,9 @@ def process_payload(payload: dict) -> dict:
 if __name__ == "__main__":
     # Test all three branches
     test_cases = [
-        {"input_text": "How many units of milk should I order for next week?"},
-        {"input_text": "Show me a graph of milk sales over the past 6 months"},
-        {"input_text": "What is the current stock level of eggs?"},
+        {"input_text": "i need stock for green field apple"}
+        #{"input_text": "Show me a graph of milk sales over the past 6 months"},
+        #{"input_text": "What is the current stock level of eggs?"},
     ]
 
     for payload in test_cases:
@@ -204,10 +204,11 @@ if __name__ == "__main__":
         print("Result:", json.dumps(result, indent=2))
     
     # exa
+    '''
     exa = Exa(api_key=os.getenv('EXA_API_KEY'))
     result = exa.search(
         "tell me about market trend for iphone 16 vs samsung s24 ultra",
         type="auto",
         contents={"highlights": True},
     )
-    print(f'Result: {result}')
+    print(f'Result: {result}')'''
