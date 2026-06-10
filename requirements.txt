@@ -18,3 +18,6 @@ python-dotenv
 
 # Exa search (used in your existing agent.py test block)
 exa-py
+
+joblib
+scikit-learn

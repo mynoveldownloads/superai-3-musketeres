@@ -27,7 +27,7 @@ import sys
 # ---------------------------------------------------------------------------
 _THIS_FILE   = os.path.dirname(os.path.abspath(__file__))          # repo/backend/init_adk_server
 _REPO_ROOT   = os.path.abspath(os.path.join(_THIS_FILE, "../../")) # repo/
-_AGENT_DIR   = os.path.join(_REPO_ROOT, "agent_final")             # repo/agent_final/
+_AGENT_DIR   = os.path.join(_REPO_ROOT, "agent")             # repo/agent_final/
 
 if _AGENT_DIR not in sys.path:
     sys.path.insert(0, _AGENT_DIR)
