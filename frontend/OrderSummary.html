@@ -63,6 +63,24 @@ thead{
   color:#166534;
   font-size:12px;
 }
+
+.btn-back {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 10px 20px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-back:hover {
+  background: #374151;
+}
 </style>
 </head>
 
@@ -84,7 +102,7 @@ let order = orders.find(o => o.po === po);
 const container = document.getElementById("summaryCard");
 
 if(!order){
-  container.innerHTML = "<h2>Order not found</h2>";
+  container.innerHTML = `<h2>Order not found</h2><button class="btn-back" onclick="window.location.href='OrderForm.html'">← Back to Order Form</button>`;
 } else {
 
 container.innerHTML = `
@@ -132,6 +150,8 @@ container.innerHTML = `
   <p><b>Tax:</b> $${order.tax.toFixed(2)}</p>
   <p><b>Total:</b> $${order.total.toFixed(2)}</p>
 </div>
+
+<button class="btn-back" onclick="window.location.href='OrderForm.html'">← Back to Order Form</button>
 
 `;
 

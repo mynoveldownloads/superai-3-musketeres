@@ -6,7 +6,15 @@ Handles stock order recommendations by:
 2. Searching real-world trends/insights for the product.
 3. Generating a recommended order quantity with reasoning.
 """
+import requests
+import pandas as pd
 
+resp = requests.post(
+    "http://127.0.0.1:3000/query",
+    json={"sql": "SELECT * FROM INFORMATION_SCHEMA.COLUMNS"}
+)
+body = resp.json()
+print(body)
 
 def handle_stock_order(user_input: str) -> dict:
     """

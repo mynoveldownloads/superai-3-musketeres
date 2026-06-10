@@ -173,6 +173,50 @@ body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
+/* DATE FILTER */
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.date-filter label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.date-filter input[type="date"] {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+.date-filter input[type="date"]:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22,163,74,.15);
+}
+
+.clear-btn {
+  padding: 8px 14px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background: #e5e7eb;
+}
+
 /* TABLE */
 table {
   width: 100%;
@@ -253,6 +297,14 @@ th, td {
     <a href="OrderForm.html" class="create-btn">+ Create Order</a>
   </div>
 
+  <div class="date-filter">
+    <label for="dateFrom">From:</label>
+    <input type="date" id="dateFrom">
+    <label for="dateTo">To:</label>
+    <input type="date" id="dateTo">
+    <button class="clear-btn" onclick="clearDates()">✕ Clear</button>
+  </div>
+
   <div class="card">
     <table>
       <thead>
@@ -288,7 +340,7 @@ document.getElementById("sidebarUsername").textContent = username;
 document.getElementById("logoutLink").onclick = (e) => {
   e.preventDefault();
   localStorage.clear();
-  window.location.href = "Homepage.html";
+  window.location.href = "index.html";
 };
 
 /* OPEN SUMMARY */
@@ -296,41 +348,114 @@ function openPO(po){
   window.location.href = "OrderSummary.html?po=" + po;
 }
 
-/* LOAD ORDERS */
-function loadOrders(){
-
-  let orders = JSON.parse(localStorage.getItem("orders")) || [];
-  let table = document.getElementById("orderTable");
-
+/* ── Render helpers ─────────────────────────────────────────────────── */
+function renderRows(orders) {
+  const table = document.getElementById("orderTable");
   table.innerHTML = "";
 
-  if(orders.length === 0){
-    table.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align:center;padding:20px;">
-          No orders found
-        </td>
-      </tr>
-    `;
+  if (orders.length === 0) {
+    table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;">No orders found</td></tr>`;
     return;
   }
 
   orders.forEach(o => {
-
-    let row = document.createElement("tr");
-
+    const row = document.createElement("tr");
     row.innerHTML = `
       <td><span class="po-link" onclick="openPO('${o.po}')">${o.po}</span></td>
       <td>${o.date}</td>
       <td>${o.supplier}</td>
-      <td>$${o.total.toFixed(2)}</td>
-      <td>${o.items.length}</td>
+      <td>${o.total}</td>
+      <td>${o.items}</td>
       <td><span class="status">${o.status}</span></td>
     `;
-
     table.appendChild(row);
   });
 }
+
+/* ── Load orders: DB first, then merge localStorage orders ─────────── */
+async function loadOrders() {
+  const table = document.getElementById("orderTable");
+  table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;">Loading…</td></tr>`;
+
+  let dbOrders = [];
+  try {
+    const resp = await fetch("http://127.0.0.1:3000/orders");
+    const body = await resp.json();
+    if (body.status !== "ok") throw new Error(body.message);
+
+    dbOrders = body.data.map(r => ({
+      po:       r.order_number,
+      date:     r.order_date ? r.order_date.substring(0, 10) : "—",
+      supplier: r.supplier_name,
+      total:    "$" + Number(r.total_cost).toFixed(2),
+      items:    r.item_count,
+      status:   r.status,
+      source:   "db"
+    }));
+  } catch (err) {
+    console.warn("DB order load failed:", err.message);
+  }
+
+  // Merge localStorage orders (created via OrderForm)
+  const localOrders = (JSON.parse(localStorage.getItem("orders")) || []).map(o => ({
+    po:       o.po,
+    date:     o.date,
+    supplier: o.supplier,
+    total:    "$" + Number(o.total).toFixed(2),
+    items:    o.items.length,
+    status:   o.status,
+    source:   "local"
+  }));
+
+  const allOrders = [...localOrders, ...dbOrders];
+
+  // Filter based on search box
+  applySearch(allOrders);
+
+  // Store for search re-filtering
+  window._allOrders = allOrders;
+}
+
+function applySearch(orders) {
+  const q        = (document.querySelector(".search")?.value || "").toLowerCase();
+  const fromVal  = document.getElementById("dateFrom").value; // "YYYY-MM-DD" or ""
+  const toVal    = document.getElementById("dateTo").value;
+
+  const filtered = orders.filter(o => {
+    // text search
+    const matchText = !q ||
+      o.po.toLowerCase().includes(q) ||
+      o.supplier.toLowerCase().includes(q) ||
+      o.date.toLowerCase().includes(q);
+
+    // date range — compare ISO date strings directly (lexicographic = chronological)
+    const orderDate = o.date.substring(0, 10); // normalise to YYYY-MM-DD
+    const matchFrom = !fromVal || orderDate >= fromVal;
+    const matchTo   = !toVal   || orderDate <= toVal;
+
+    return matchText && matchFrom && matchTo;
+  });
+
+  renderRows(filtered);
+}
+
+function clearDates() {
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value   = "";
+  if (window._allOrders) applySearch(window._allOrders);
+}
+
+document.querySelector(".search").addEventListener("input", () => {
+  if (window._allOrders) applySearch(window._allOrders);
+});
+
+document.getElementById("dateFrom").addEventListener("change", () => {
+  if (window._allOrders) applySearch(window._allOrders);
+});
+
+document.getElementById("dateTo").addEventListener("change", () => {
+  if (window._allOrders) applySearch(window._allOrders);
+});
 
 /* INIT */
 loadOrders();
