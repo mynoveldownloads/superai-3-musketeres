@@ -300,7 +300,7 @@
 
         <a href="MainPage.html" class="menu-link">Dashboard</a>
         <a href="OrderHistory.html" class="menu-link">Order History</a>
-        <a href="inventory.html" class="menu-link">Inventory Management</a>
+        <a href="Inventory.html" class="menu-link">Inventory Management</a>
         <a href="OrderForm.html" class="menu-link">Order Form</a>
       </div>
 
@@ -374,7 +374,7 @@
     async function loadInventory() {
       const tbody = document.getElementById("inventoryBody");
       try {
-        const resp = await fetch("http://127.0.0.1:3000/inventory");
+        const resp = await fetch("https://musketeer-mart.localhost.rodeo/api/sql/inventory");
         const body = await resp.json();
         if (body.status !== "ok") throw new Error(body.message);
         allRows = body.data;

@@ -65,6 +65,7 @@ app = FastAPI(
     title="database.db Query API",
     description="Read-only SQL query interface for database.db. Only SELECT statements are permitted.",
     version="1.0.0",
+    root_path="/api/sql",
 )
 
 # Allow the HTML pages (opened from file:// or any localhost port) to call the API
@@ -150,7 +151,7 @@ class QueryRequest(BaseModel):
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
-@app.get("/", summary="Health check")
+@app.get("/api/sql/", summary="Health check")
 def root():
     """Returns a simple health-check confirming the server is running and which DB is in use."""
     return {
@@ -160,7 +161,7 @@ def root():
     }
 
 
-@app.post("/query", summary="Execute a SELECT query")
+@app.post("/api/sql/query", summary="Execute a SELECT query")
 async def execute_query(body: QueryRequest):
     """
     Execute a read-only SQL SELECT query against database.db.
@@ -262,32 +263,32 @@ def run_query(sql: str):
 
 # ── Named endpoints ────────────────────────────────────────────────────────────
 
-@app.get("/inventory", summary="List all active products with stock levels")
+@app.get("/api/sql/inventory", summary="List all active products with stock levels")
 def get_inventory():
     """Products joined with inventory: name, brand, category, price, quantity_on_hand."""
     return run_query(SQL_Queries.INVENTORY_LIST)
 
 
-@app.get("/products-by-supplier", summary="Products for a given supplier")
+@app.get("/api/sql/products-by-supplier", summary="Products for a given supplier")
 def get_products_by_supplier(supplier_id: int):
     """Returns active products for a specific supplier_id. Used by OrderForm item dropdown."""
     sql = SQL_Queries.PRODUCTS_BY_SUPPLIER.format(supplier_id=int(supplier_id))
     return run_query(sql)
 
 
-@app.get("/suppliers", summary="List all active suppliers")
+@app.get("/api/sql/suppliers", summary="List all active suppliers")
 def get_suppliers():
     """Active suppliers for populating dropdowns."""
     return run_query(SQL_Queries.SUPPLIERS_ACTIVE)
 
 
-@app.get("/orders", summary="Order history summary")
+@app.get("/api/sql/orders", summary="Order history summary")
 def get_orders():
     """Purchase orders grouped by order number with supplier name and totals."""
     return run_query(SQL_Queries.ORDERS_SUMMARY)
 
 
-@app.get("/dashboard", summary="Dashboard KPIs")
+@app.get("/api/sql/dashboard", summary="Dashboard KPIs")
 def get_dashboard():
     """Aggregated KPIs: product count, low-stock count, order count, revenue, recent orders, monthly sales, category sales, low-stock items."""
     try:
@@ -324,4 +325,4 @@ def get_dashboard():
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    uvicorn.run("api_server:app", host="127.0.0.1", port=3000, reload=False)
+    uvicorn.run("api_server:app", host="0.0.0.0", port=3000, reload=False, root_path="/api/sql")

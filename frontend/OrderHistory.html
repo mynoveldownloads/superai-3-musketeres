@@ -268,7 +268,7 @@ th, td {
 
     <a class="menu-link" href="MainPage.html">Dashboard</a>
     <a class="menu-link" href="OrderHistory.html">Order History</a>
-    <a class="menu-link" href="inventory.html">Inventory</a>
+    <a class="menu-link" href="Inventory.html">Inventory</a>
     <a class="menu-link" href="OrderForm.html">Order Form</a>
   </div>
 
@@ -379,7 +379,7 @@ async function loadOrders() {
 
   let dbOrders = [];
   try {
-    const resp = await fetch("http://127.0.0.1:3000/orders");
+    const resp = await fetch("https://musketeer-mart.localhost.rodeo/api/sql/orders");
     const body = await resp.json();
     if (body.status !== "ok") throw new Error(body.message);
 

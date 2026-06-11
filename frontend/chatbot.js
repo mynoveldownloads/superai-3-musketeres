@@ -200,10 +200,11 @@
 
   /* ── Logic ─────────────────────────────────────────────────────────── */
   const messagesEl = document.getElementById("chatMessages");
-  const inputEl    = document.getElementById("cwInput");
-  const typingEl   = document.getElementById("cwTyping");
+  const inputEl = document.getElementById("cwInput");
+  const typingEl = document.getElementById("cwTyping");
 
-  const AGENT_URL  = "http://127.0.0.1:5000/chat";
+  // const AGENT_URL  = "https://musketeer-mart.localhost.rodeo/api/agent/chat";
+  const AGENT_URL = "https://musketeer-mart.localhost.rodeo/api/agent/chat";
   const SESSION_ID = crypto.randomUUID(); // unique per page load
 
   function timeNow() {
@@ -242,8 +243,8 @@
       imgWrap.style.cssText = "align-self:flex-start;max-width:90%;margin-top:4px;";
 
       const img = document.createElement("img");
-      img.src   = imageUrl;
-      img.alt   = "Chart";
+      img.src = imageUrl;
+      img.alt = "Chart";
       img.style.cssText = "max-width:100%;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.12);display:block;";
       img.onerror = () => {
         imgWrap.innerHTML = "<span style='color:#ef4444;font-size:12px;'>⚠️ Chart could not be loaded</span>";
@@ -255,14 +256,14 @@
 
     // Timestamp
     const time = document.createElement("div");
-    time.className   = `cw-time ${role === "user" ? "right" : "left"}`;
+    time.className = `cw-time ${role === "user" ? "right" : "left"}`;
     time.textContent = timeNow();
     messagesEl.insertBefore(time, typingEl);
 
     scrollBottom();
   }
 
-  function showTyping() { typingEl.classList.add("active");    scrollBottom(); }
+  function showTyping() { typingEl.classList.add("active"); scrollBottom(); }
   function hideTyping() { typingEl.classList.remove("active"); }
 
   async function sendMessage() {
@@ -275,9 +276,9 @@
 
     try {
       const resp = await fetch(AGENT_URL, {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ session_id: SESSION_ID, message: text }),
+        body: JSON.stringify({ session_id: SESSION_ID, message: text }),
       });
 
       if (!resp.ok) throw new Error(`Server ${resp.status}`);
@@ -297,8 +298,8 @@
         const rec = data.recommendation;
         const params = new URLSearchParams({
           supplier: rec.supplier_name || "",
-          product:  rec.product_name  || "",
-          qty:      rec.qty || 1
+          product: rec.product_name || "",
+          qty: rec.qty || 1
         });
         const btnWrap = document.createElement("div");
         btnWrap.style.cssText = "align-self:flex-start;margin-top:8px;";

@@ -232,7 +232,7 @@
   /* ── Dashboard data ──────────────────────────────────────────────── */
   async function loadDashboard() {
     try {
-      const resp = await fetch("http://127.0.0.1:3000/dashboard");
+      const resp = await fetch("https://musketeer-mart.localhost.rodeo/api/sql/dashboard");
       const body = await resp.json();
       if (body.status !== "ok") throw new Error(body.message);
       const d = body.data;

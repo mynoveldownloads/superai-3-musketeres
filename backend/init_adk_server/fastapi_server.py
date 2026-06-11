@@ -60,7 +60,7 @@ app.add_middleware(
 )
 
 # Serve agent_final/charts/ at /charts
-# e.g. agent_final/charts/foo.png → http://localhost:5000/charts/foo.png
+# e.g. agent_final/charts/foo.png → http://adk-agent:5000/api/agent/charts/foo.png
 app.mount("/charts", StaticFiles(directory=_CHART_DIR), name="charts")
 
 # ==============================================================================
@@ -99,7 +99,7 @@ class ChatResponse(BaseModel):
 # ==============================================================================
 # Helpers
 # ==============================================================================
-_API_BASE = "http://localhost:5000"
+_API_BASE = "http://adk-agent:5000/api/agent"
 
 def extract_image_url(agent_result: dict) -> str | None:
     """
@@ -132,7 +132,7 @@ def clean_message_text(message: str) -> str:
 # ==============================================================================
 # POST /chat
 # ==============================================================================
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/api/agent/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
     # Initialise history for new sessions
     if req.session_id not in conversation_store:
@@ -190,7 +190,7 @@ def chat(req: ChatRequest):
 # ==============================================================================
 # GET /health
 # ==============================================================================
-@app.get("/health")
+@app.get("/api/agent/health")
 def health():
     return {"status": "ok"}
 
@@ -198,7 +198,7 @@ def health():
 # ==============================================================================
 # GET /history/{session_id}
 # ==============================================================================
-@app.get("/history/{session_id}")
+@app.get("/api/agent/history/{session_id}")
 def get_history(session_id: str):
     return {
         "session_id": session_id,
@@ -209,7 +209,7 @@ def get_history(session_id: str):
 # ==============================================================================
 # DELETE /history/{session_id}
 # ==============================================================================
-@app.delete("/history/{session_id}")
+@app.delete("/api/agent/history/{session_id}")
 def clear_history(session_id: str):
     conversation_store.pop(session_id, None)
     return {"session_id": session_id, "cleared": True}
