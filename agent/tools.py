@@ -45,7 +45,7 @@ requests.Session.__init__ = _patched_session_init
 # --- OpenRouter Client Setup ---
 http_client = httpx.Client(verify=False)
 
-API_URL = os.getenv("DB_API_URL", "http://127.0.0.1:3000/query")
+API_URL = os.getenv("DB_API_URL", "http://sql-backend:3000/api/sql/query")
 
 # Resolved once at import time — tools.py lives in agent/
 _TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -111,7 +111,7 @@ def metadata_txt_exists() -> dict:
 def query_db(sql: str) -> dict:
     """
     Executes a read-only SELECT query against the supermarket inventory SQLite
-    database via the internal FastAPI server at http://127.0.0.1:3000/query.
+    database via the internal FastAPI server at http://sql-backend:3000/api/sql/query.
 
     Use this tool to:
     1. EXPLORE schema (only if metadata_txt_exists returned exists=False):

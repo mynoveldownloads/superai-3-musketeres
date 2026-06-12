@@ -60,3 +60,12 @@ coverage.xml
 .pytest_cache/
 poetry.lock
 pipfile
+
+# Cloudflare Tunnel credentials & configuration secrets
+.cloudflared/
+cert.pem
+*tunnel*.json
+credentials.json
+*.key
+*.pem
+*.crt

@@ -64,7 +64,7 @@ def load_db_schema() -> dict:
 def execute_sql_function(sql: str) -> dict:
     """Execute a SQL query against the database."""
     resp = requests.post(
-        "http://127.0.0.1:3000/query",
+        "http://sql-backend:3000/api/sql/query",
         json={"sql": sql}
     )
     return resp.json()

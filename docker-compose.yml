@@ -1,0 +1,31 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    container_name: frontend
+    restart: unless-stopped
+
+  sql-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.sql
+    ports:
+      - "3000:3000"
+    container_name: sql-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  adk-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.adk
+    ports:
+      - "5000:5000"
+    container_name: adk-agent
+    restart: unless-stopped
+    env_file:
+      - .env

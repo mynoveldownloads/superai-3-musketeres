@@ -244,7 +244,7 @@ button.action {
 
     <a class="menu-link" href="MainPage.html">Dashboard</a>
     <a class="menu-link" href="OrderHistory.html">Order History</a>
-    <a class="menu-link" href="inventory.html">Inventory</a>
+    <a class="menu-link" href="Inventory.html">Inventory</a>
     <a class="menu-link" href="OrderForm.html">Order Form</a>
   </div>
 
@@ -391,7 +391,7 @@ let filteredProducts = []; // after category filter
 async function loadSuppliers() {
   const sel = document.getElementById("supplierSelect");
   try {
-    const resp = await fetch("http://127.0.0.1:3000/suppliers");
+    const resp = await fetch("https://musketeer-mart.localhost.rodeo/api/sql/suppliers");
     const body = await resp.json();
     if (body.status !== "ok") throw new Error(body.message);
 
@@ -419,7 +419,7 @@ async function loadProductsForSupplier(supplierId) {
     return;
   }
   try {
-    const resp = await fetch(`http://127.0.0.1:3000/products-by-supplier?supplier_id=${supplierId}`);
+    const resp = await fetch(`https://musketeer-mart.localhost.rodeo/api/sql/products-by-supplier?supplier_id=${supplierId}`);
     const body = await resp.json();
     if (body.status !== "ok") throw new Error(body.message);
     allProducts = body.data;

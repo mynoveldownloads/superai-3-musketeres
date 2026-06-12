@@ -53,7 +53,7 @@ large_json = {}
 
 for i in ['orders', 'inventory', 'sales_items', 'suppliers', 'products']:
     resp = requests.post(
-        "http://127.0.0.1:3000/query",
+        "http://sql-backend:3000/api/sql/query",
         json={"sql": f"SELECT * FROM {i} LIMIT 10;"}
     )
     large_json[i] = resp.json()
@@ -121,7 +121,7 @@ large_json2 = {}
 
 for i in ['orders', 'inventory', 'sales_items', 'suppliers', 'products']:
     resp = requests.post(
-        "http://127.0.0.1:3000/query",
+        "http://sql-backend:3000/api/sql/query",
         json={"sql": f"SELECT * FROM {i} LIMIT 10 OFFSET 20;"}
     )
     large_json2[i] = resp.json()
